@@ -198,7 +198,9 @@ impl OctTree {
                     match child {
                         None => {}
                         Some(link) => {
-                            let (red, green, blue, pixel) = link.borrow().value();
+                            let (red, green, blue, pixel) = link.try_borrow()
+                                .expect("get link value")
+                                .value();
                             red_sum += red;
                             green_sum += green;
                             blue_sum += blue;
@@ -224,7 +226,7 @@ impl OctTree {
     }
 
     fn color_palette(&self, sort: bool) -> Box<[ARGB]> {
-        let node: Ref<Node> = self.root.as_ref().unwrap().borrow();
+        let node: Ref<Node> = self.root.as_ref().unwrap().try_borrow().unwrap();
 
         if sort {
             let mut palette = BTreeSet::new();
@@ -238,7 +240,7 @@ impl OctTree {
     }
 }
 
-pub fn octtree_quantizer(colors: & [ARGB], max_color_count: u32, sort: bool) -> Box<[ARGB]> {
+pub fn octtree_quantizer(colors: &[ARGB], max_color_count: u32, sort: bool) -> Box<[ARGB]> {
     let mut tree = OctTree::new();
     let mut root = tree.root.clone().unwrap();
 
@@ -269,7 +271,7 @@ impl Cluster {
     fn new(colors: &[ARGB]) -> Self {
         let raw = Vec::from(colors);
         let mut largest_spread: u8 = 0;
-        let mut component_with_largest_spread: usize = 0;
+        let mut component_with_largest_spread: usize = 1;
 
         for component in 1..3 {
             let mut min_: u8 = 0xFF;
@@ -306,18 +308,24 @@ impl Cluster {
 
     fn avg(&self) -> ARGB {
         let total = self.raw.len() as u64;
-        self.raw.iter().fold([0u64; 4], |acc, color| {
+        let sum = self.raw.iter().fold([0u64; 3], |acc, color| {
             [
-                0,
-                acc[1] + color[1] as u64,
-                acc[2] + color[2] as u64,
-                acc[3] + color[3] as u64
+                acc[0] + color[1] as u64,
+                acc[1] + color[2] as u64,
+                acc[2] + color[3] as u64
             ]
-        }).map(|component| (component / total) as u8)
+        });
+
+        [
+            0xFF,
+            (sum[0] / total) as u8,
+            (sum[1] / total) as u8,
+            (sum[2] / total) as u8
+        ]
     }
 }
 
-pub fn mediancut_quantizer(colors: & [ARGB], max_color_count: u32, sort: bool) -> Box<[ARGB]> {
+pub fn mediancut_quantizer(colors: &[ARGB], max_color_count: u32, sort: bool) -> Box<[ARGB]> {
     let mut clusters = Vec::with_capacity(max_color_count as usize);
 
     clusters.push(Cluster::new(colors));
@@ -325,7 +333,6 @@ pub fn mediancut_quantizer(colors: & [ARGB], max_color_count: u32, sort: bool) -
     while clusters.len() < max_color_count as usize {
         clusters.sort_by_key(|cluster| cluster.largest_spread);
         let mut cluster = clusters.pop().expect("mediancut get cluster");
-        // TODO
         clusters.append(&mut cluster.split());
     }
 
@@ -348,8 +355,129 @@ pub fn mediancut_quantizer(colors: & [ARGB], max_color_count: u32, sort: bool) -
 
 // region KMeans Quantizer
 
-pub fn kmeans_quantizer(colors: & [ARGB], max_color_count: u32, sort: bool) -> Box<[ARGB]> {
-    Box::from(colors)
+fn init_centroids(elements: &HashMap<ARGB, usize>, capacity: usize) -> HashSet<ARGB> {
+    let mut set = HashSet::with_capacity(capacity * 3);
+    let mut keys = elements.keys();
+    while set.len() < capacity {
+        match keys.next() {
+            None => {}
+            Some(color) => {
+                set.insert(*color);
+            }
+        }
+    }
+
+    set
+}
+
+fn distinct_elements(colors: &[ARGB], capacity: usize) -> HashMap<ARGB, usize> {
+    let mut map = HashMap::with_capacity(capacity);
+
+    for color in colors {
+        let value = match map.get(color) {
+            None => {
+                0
+            }
+            Some(count) => {
+                count + 1
+            }
+        };
+
+        map.insert(*color, value);
+    }
+
+    map
+}
+
+fn centroid(elements: &HashMap<ARGB, usize>) -> ARGB {
+    let mut sum = [0usize;3];
+    for (color, count) in elements {
+        sum = [
+            sum[0] + color[0] as usize * count,
+            sum[1] + color[1] as usize * count,
+            sum[2] + color[2] as usize * count,
+        ]
+    }
+
+    let size = elements.len();
+    [
+        0xFF,
+        (sum[0] / size) as u8,
+        (sum[1] / size) as u8,
+        (sum[2] / size) as u8,
+    ]
+}
+
+fn nearest_color(centroids: &HashSet<ARGB>, color: &ARGB) -> ARGB {
+    centroids.iter().min_by_key(|item| {
+        item[1] * color[1] + color[2] * color[2] + color[3] * color[3]
+    }).expect("get nearest fail.").clone()
+}
+
+pub fn kmeans_quantizer(colors: &[ARGB], max_color_count: u32, sort: bool) -> Box<[ARGB]> {
+    let elements = distinct_elements(colors, max_color_count as usize);
+    let mut centroids = init_centroids(&elements, max_color_count as usize);
+    let rc = Rc::new(RefCell::new(HashMap::with_capacity(elements.capacity())));
+
+    for (color, count) in elements {
+        let nearest = nearest_color(&centroids, &color);
+        let rc = rc.clone();
+        let mut clusters = rc.borrow_mut();
+        let record = clusters.get_mut(&nearest);
+        match record {
+            None => {
+                clusters.insert(nearest,  HashMap::from([(color, count)]));
+            }
+            Some(hash_map) => {
+                hash_map.insert(color, count);
+            }
+        }
+    }
+
+    while !centroids.is_empty() {
+        let rc = rc.clone();
+        let mut clusters = rc.borrow_mut();
+        for old in &centroids {
+            let cluster = clusters.remove(old)
+                .unwrap_or_else(|| HashMap::new());
+            let new = centroid(&cluster);
+
+            clusters.insert(new, cluster);
+        }
+        centroids.clear();
+
+        let ids: HashSet<ARGB> = clusters.keys().map(|i| i.clone()).collect();
+        for (centroid, cluster) in clusters.iter_mut() {
+            for (color, count) in cluster.clone() {
+                let new_centroid = nearest_color(&ids, &color);
+                let rc = rc.clone();
+                let mut clusters = rc.borrow_mut();
+
+                let record = clusters.get_mut(&new_centroid);
+                match record {
+                    None => {
+                        clusters.insert(new_centroid,  HashMap::from([(color.clone(), count)]));
+                    }
+                    Some(hash_map) => {
+                        hash_map.insert(color.clone(), count);
+                    }
+                };
+                cluster.remove(&color);
+
+                centroids.insert(*centroid);
+                centroids.insert(new_centroid);
+            }
+        }
+    }
+
+    let clusters = rc.borrow();
+    let iter = clusters.keys().map(|i| i.clone());
+
+    if sort {
+        BTreeSet::from_iter(iter).into_iter().collect()
+    } else {
+        iter.collect()
+    }
 }
 
 // end region
