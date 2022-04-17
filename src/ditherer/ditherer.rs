@@ -1,12 +1,6 @@
-use std::cell::*;
-use std::collections::*;
-use std::ops::{DerefMut, Index};
-use std::rc::Rc;
-use skia_safe::*;
-
 type ARGB = [u8; 4];
 
-struct ErrorComponent {
+pub struct ErrorComponent {
     delta_x: i32,
     delta_y: i32,
     power: f64,
@@ -20,7 +14,7 @@ fn nearest(original: &ARGB, replacement: &ARGB) -> u32 {
     (r * r + g * g + b * b) as u32
 }
 
-fn error(original: &ARGB, replacement: &ARGB) -> ARGB {
+fn minus(original: &ARGB, replacement: &ARGB) -> ARGB {
     [
         original[0] - replacement[0],
         original[1] - replacement[1],
@@ -29,7 +23,7 @@ fn error(original: &ARGB, replacement: &ARGB) -> ARGB {
     ]
 }
 
-fn offset(original: &ARGB, offset: &ARGB) -> ARGB {
+fn add(original: &ARGB, offset: &ARGB) -> ARGB {
     [
         original[0] + offset[0],
         original[1] + offset[1],
@@ -38,16 +32,7 @@ fn offset(original: &ARGB, offset: &ARGB) -> ARGB {
     ]
 }
 
-pub fn atkinson_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
-    let atkinson = [
-        ErrorComponent { delta_x: 1, delta_y: 0, power: 1.0 / 8.0 },
-        ErrorComponent { delta_x: 2, delta_y: 0, power: 1.0 / 8.0 },
-        ErrorComponent { delta_x: -1, delta_y: 1, power: 1.0 / 8.0 },
-        ErrorComponent { delta_x: 0, delta_y: 1, power: 1.0 / 8.0 },
-        ErrorComponent { delta_x: 1, delta_y: 1, power: 1.0 / 8.0 },
-        ErrorComponent { delta_x: 0, delta_y: 2, power: 1.0 / 8.0 }
-    ];
-
+pub fn ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>, distribution: &[ErrorComponent]) -> Box<[ARGB]> {
     let mut raw: Box<[ARGB]> = Box::from(colors);
 
     for x in 0..(width - 1) {
@@ -59,20 +44,88 @@ pub fn atkinson_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<
                 .min_by_key(|other| nearest(original, other))
                 .expect("atkinson_ditherer get min replacement");
 
-            let error = error(original, replacement);
-            for component in atkinson.iter() {
+            let error = minus(original, replacement);
+            for component in distribution.iter() {
                 let sibling_x = x + component.delta_x;
                 let sibling_y = y + component.delta_y;
                 if sibling_x >= 0 && sibling_x < width && sibling_y >= 0 && sibling_y < height {
                     let index = (sibling_y * width + sibling_x) as usize;
-                    let dest = colors.get(index)
-                        .expect("ditherer get dest color");
+                    let dest = colors.get(index).expect("ditherer get dest color");
+                    let offset = &error.map(|i| (i as f64 * component.power) as u8);
 
-                    raw[index] = offset(dest, &error.map(|i| (i as f64 * component.power) as u8));
+                    raw[index] = add(dest, offset);
                 }
             }
         }
     }
 
     raw
+}
+
+pub fn atkinson_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+    let distribution = [
+        ErrorComponent { delta_x: 1, delta_y: 0, power: 1.0 / 8.0 },
+        ErrorComponent { delta_x: 2, delta_y: 0, power: 1.0 / 8.0 },
+        //
+        ErrorComponent { delta_x: -1, delta_y: 1, power: 1.0 / 8.0 },
+        ErrorComponent { delta_x: 0, delta_y: 1, power: 1.0 / 8.0 },
+        ErrorComponent { delta_x: 1, delta_y: 1, power: 1.0 / 8.0 },
+        //
+        ErrorComponent { delta_x: 0, delta_y: 2, power: 1.0 / 8.0 }
+    ];
+
+    ditherer(colors, width, height, palette, &distribution)
+}
+
+pub fn jjn_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+    let distribution = [
+        ErrorComponent { delta_x: 1, delta_y: 0, power: 7.0 / 48.0 },
+        ErrorComponent { delta_x: 2, delta_y: 0, power: 5.0 / 48.0 },
+        //
+        ErrorComponent { delta_x: -2, delta_y: 1, power: 3.0 / 48.0 },
+        ErrorComponent { delta_x: 1, delta_y: 1, power: 5.0 / 48.0 },
+        ErrorComponent { delta_x: 0, delta_y: 1, power: 7.0 / 48.0 },
+        ErrorComponent { delta_x: 1, delta_y: 1, power: 5.0 / 48.0 },
+        ErrorComponent { delta_x: 2, delta_y: 1, power: 3.0 / 48.0 },
+        //
+        ErrorComponent { delta_x: -2, delta_y: 2, power: 1.0 / 48.0 },
+        ErrorComponent { delta_x: -1, delta_y: 2, power: 3.0 / 48.0 },
+        ErrorComponent { delta_x: 0, delta_y: 2, power: 5.0 / 48.0 },
+        ErrorComponent { delta_x: 1, delta_y: 2, power: 3.0 / 48.0 },
+        ErrorComponent { delta_x: 2, delta_y: 2, power: 1.0 / 48.0 }
+    ];
+
+    ditherer(colors, width, height, palette, &distribution)
+}
+
+pub fn sierra_lite_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+    let distribution = [
+        ErrorComponent { delta_x: 1, delta_y: 0, power: 2.0 / 4.0 },
+        //
+        ErrorComponent { delta_x: -1, delta_y: 1, power: 1.0 / 4.0 },
+        ErrorComponent { delta_x: 0, delta_y: 1, power: 1.0 / 4.0 },
+    ];
+
+    ditherer(colors, width, height, palette, &distribution)
+}
+
+pub fn stucki_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+    let distribution = [
+        ErrorComponent { delta_x: 1, delta_y: 0, power: 8.0 / 48.0 },
+        ErrorComponent { delta_x: 2, delta_y: 0, power: 4.0 / 48.0 },
+        //
+        ErrorComponent { delta_x: -2, delta_y: 1, power: 2.0 / 48.0 },
+        ErrorComponent { delta_x: 1, delta_y: 1, power: 4.0 / 48.0 },
+        ErrorComponent { delta_x: 0, delta_y: 1, power: 8.0 / 48.0 },
+        ErrorComponent { delta_x: 1, delta_y: 1, power: 4.0 / 48.0 },
+        ErrorComponent { delta_x: 2, delta_y: 1, power: 2.0 / 48.0 },
+        //
+        ErrorComponent { delta_x: -2, delta_y: 2, power: 1.0 / 48.0 },
+        ErrorComponent { delta_x: -1, delta_y: 2, power: 2.0 / 48.0 },
+        ErrorComponent { delta_x: 0, delta_y: 2, power: 4.0 / 48.0 },
+        ErrorComponent { delta_x: 1, delta_y: 2, power: 2.0 / 48.0 },
+        ErrorComponent { delta_x: 2, delta_y: 2, power: 1.0 / 48.0 }
+    ];
+
+    ditherer(colors, width, height, palette, &distribution)
 }
