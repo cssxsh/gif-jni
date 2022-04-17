@@ -9,7 +9,6 @@ use gif::*;
 use jni::JNIEnv;
 use jni::objects::JString;
 use jni::sys::*;
-use skia_bindings::*;
 use skia_safe::*;
 use skia_safe::wrapper::*;
 use quantizer::quantizer::*;
@@ -18,7 +17,7 @@ use quantizer::quantizer::*;
 pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_octtree(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, count: jint, sort: jboolean,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as *mut SkBitmap).expect("wrap SkBitmap");
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _).expect("wrap SkBitmap");
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
     let colors = bitmap.pixmap().pixels().expect("quantizer read pixels");
 
@@ -33,7 +32,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_octtree(
 pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_mediancut(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, count: jint, sort: jboolean,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as *mut SkBitmap).expect("wrap SkBitmap");
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _).expect("wrap SkBitmap");
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
     let colors = bitmap.pixmap().pixels().expect("quantizer read pixels");
 
@@ -48,7 +47,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_mediancut(
 pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_kmeans(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, count: jint, sort: jboolean,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as *mut SkBitmap).expect("wrap SkBitmap");
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _).expect("wrap SkBitmap");
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
     let colors = bitmap.pixmap().pixels().expect("quantizer read pixels");
 
@@ -196,7 +195,6 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_close(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_default_00024gif(
     _env: JNIEnv, _this: jclass,
 ) -> jlong {
-
     let frame = Frame::default();
 
     Box::into_raw(Box::from(frame)) as _
@@ -380,7 +378,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDelay_00024gif(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDelay_00024gif(
-    _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint
+    _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint,
 ) -> jlong {
     let mut frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
     frame.delay = value as _;
@@ -403,7 +401,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDispose_00024gif(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDispose_00024gif(
-    _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint
+    _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint,
 ) -> jlong {
     let mut frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
     frame.dispose = DisposalMethod::from_u8(value as _)
@@ -434,7 +432,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getRect_00024gif(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setRect_00024gif(
-    _env: JNIEnv, _this: jclass, frame_ptr: jlong, top: jint, left: jint, width: jint, height: jint
+    _env: JNIEnv, _this: jclass, frame_ptr: jlong, top: jint, left: jint, width: jint, height: jint,
 ) -> jlong {
     let mut frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
     frame.top = top as _;
@@ -458,7 +456,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024gif(
         Some(vec) => {
             let arr = _env.new_byte_array(vec.len() as jsize)
                 .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-            let buf= unsafe { from_raw_parts(vec.as_ptr() as *const jbyte, vec.len()) };
+            let buf = unsafe { from_raw_parts(vec.as_ptr() as *const jbyte, vec.len()) };
 
             _env.set_byte_array_region(arr, 0, buf)
                 .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
