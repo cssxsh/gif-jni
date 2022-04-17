@@ -20,9 +20,77 @@ jobs:
         shell: bash
         run: |
           rustup target add x86_64-pc-windows-msvc
-          
+
       - name: Build
         shell: bash
         run: |
-          cargo build --package gif-jni --lib  --release --target x86_64-pc-windows-msvc
+          cargo build --package gif-jni --lib --release --target x86_64-pc-windows-msvc
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: target/x86_64-pc-windows-msvc/release/
+
+  linux-build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/pragmatrix/rust-skia-linux:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Prepare Rustup
+        run: (cd /github/home && ln -s /root/.cargo)
+
+      - name: Update Rustup and Rust
+        run: rustup update
+
+      - name: Configure Rust Toolchain
+        run: rustup default stable
+
+      - name: Install Rust Target
+        shell: bash
+        run: |
+          rustup target add x86_64-unknown-linux-gnu
+
+      - name: Build
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-build
+          path: target/x86_64-unknown-linux-gnu/release/
+
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@master
+        with:
+          rust-version: stable
+
+      - name: Remove LLVM (macOS)
+        run: brew uninstall llvm
+
+      - name: Install Rust Target
+        shell: bash
+        run: |
+          rustup target add x86_64-apple-darwin
+
+      - name: Build
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target x86_64-apple-darwin
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-build
+          path: target/x86_64-apple-darwin/release/
 
