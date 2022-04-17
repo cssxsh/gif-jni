@@ -378,11 +378,13 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024gif(
             _env.new_byte_array(0)
                 .unwrap_or_else(|error| _env.fatal_error(error.to_string()))
         }
-        Some(bytes) => {
-            let arr = _env.new_byte_array(bytes.len() as jsize)
+        Some(vec) => {
+            let arr = _env.new_byte_array(vec.len() as jsize)
                 .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
+            let bytes: Vec<i8> = vec.iter().map(|b| *b as i8).collect();
 
-            _env.set_byte_array_region(arr, 0, bytes.as_slice() as _);
+            _env.set_byte_array_region(arr, 0, &bytes)
+                .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
             arr
         }
