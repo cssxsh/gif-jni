@@ -111,9 +111,12 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeFrame(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
-    _env: JNIEnv, _this: jclass, encoder_ptr: jlong, image_ptr: jlong, delay: jint, dispose: jint,
+    _env: JNIEnv, _this: jclass, encoder_ptr: jlong, image_ptr: jlong, delay: jint, dispose: jint, speed: jint,
 ) -> jlong {
-    let image = Image::wrap(image_ptr as *mut SkImage)
+    if speed < 1 || speed > 30 {
+        _env.fatal_error("speed needs to be in the range [1, 30]")
+    }
+    let image = Image::wrap(image_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap image fail."));
 
     if image.color_type() != ColorType::RGBA8888 && image.color_type() != ColorType::RGB888x {
@@ -126,7 +129,12 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
     let bytes = pixmap.bytes()
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
-    let mut frame = Frame::from_rgba(image.width() as _, image.height() as _, pixels.as_mut_slice());
+    let mut frame = Frame::from_rgba_speed(
+        image.width() as _,
+        image.height() as _,
+        pixels.as_mut_slice(),
+        speed,
+    );
 
     frame.delay = delay as _;
     frame.dispose = DisposalMethod::from_u8(dispose as _)
@@ -140,9 +148,12 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
-    _env: JNIEnv, _this: jclass, encoder_ptr: jlong, bitmap_ptr: jlong, delay: jint, dispose: jint,
+    _env: JNIEnv, _this: jclass, encoder_ptr: jlong, bitmap_ptr: jlong, delay: jint, dispose: jint, speed: jint,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as *mut SkBitmap)
+    if speed < 1 || speed > 30 {
+        _env.fatal_error("speed needs to be in the range [1, 30]")
+    }
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
 
@@ -156,7 +167,12 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
     let bytes = pixmap.bytes()
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
-    let mut frame = Frame::from_rgba(bitmap.width() as _, bitmap.height() as _, pixels.as_mut_slice());
+    let mut frame = Frame::from_rgba_speed(
+        bitmap.width() as _,
+        bitmap.height() as _,
+        pixels.as_mut_slice(),
+        speed,
+    );
 
     frame.delay = delay as _;
     frame.dispose = DisposalMethod::from_u8(dispose as _)
@@ -226,6 +242,9 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPalettePixels_00024gif(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024gif(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jbyteArray, speed: jint,
 ) -> jlong {
+    if speed < 1 || speed > 30 {
+        _env.fatal_error("speed needs to be in the range [1, 30]")
+    }
     let pixels = _env.convert_byte_array(pixels)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
@@ -239,6 +258,9 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024gif(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024gif(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jbyteArray, speed: jint,
 ) -> jlong {
+    if speed < 1 || speed > 30 {
+        _env.fatal_error("speed needs to be in the range [1, 30]")
+    }
     let mut pixels = _env.convert_byte_array(pixels)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
@@ -249,9 +271,12 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024gif(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
-    _env: JNIEnv, _this: jclass, image_ptr: jlong,
+    _env: JNIEnv, _this: jclass, image_ptr: jlong, speed: jint,
 ) -> jlong {
-    let image = Image::wrap(image_ptr as *mut SkImage)
+    if speed < 1 || speed > 30 {
+        _env.fatal_error("speed needs to be in the range [1, 30]")
+    }
+    let image = Image::wrap(image_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap image fail."));
 
     if image.color_type() != ColorType::RGBA8888 && image.color_type() != ColorType::RGB888x {
@@ -264,16 +289,24 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
 
-    let frame = Frame::from_rgba(image.width() as _, image.height() as _, pixels.as_mut_slice());
+    let frame = Frame::from_rgba_speed(
+        image.width() as _,
+        image.height() as _,
+        pixels.as_mut_slice(),
+        speed,
+    );
 
     Box::into_raw(Box::from(frame)) as _
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
-    _env: JNIEnv, _this: jclass, bitmap_ptr: jlong,
+    _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, speed: jint,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as *mut SkBitmap)
+    if speed < 1 || speed > 30 {
+        _env.fatal_error("speed needs to be in the range [1, 30]")
+    }
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
 
@@ -287,16 +320,24 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
 
-    let frame = Frame::from_rgba(bitmap.width() as _, bitmap.height() as _, pixels.as_mut_slice());
+    let frame = Frame::from_rgba_speed(
+        bitmap.width() as _,
+        bitmap.height() as _,
+        pixels.as_mut_slice(),
+        speed,
+    );
 
     Box::into_raw(Box::from(frame)) as _
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
-    _env: JNIEnv, _this: jclass, pixmap_ptr: jlong,
+    _env: JNIEnv, _this: jclass, pixmap_ptr: jlong, speed: jint,
 ) -> jlong {
-    let sk_pixmap = RefHandle::wrap(pixmap_ptr as *mut SkPixmap)
+    if speed < 1 || speed > 30 {
+        _env.fatal_error("speed needs to be in the range [1, 30]")
+    }
+    let sk_pixmap = RefHandle::wrap(pixmap_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap SkPixmap"));
     let pixmap = Pixmap::wrap_ref(sk_pixmap.inner());
 
@@ -308,7 +349,12 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
 
-    let frame = Frame::from_rgba(pixmap.width() as _, pixmap.height() as _, pixels.as_mut_slice());
+    let frame = Frame::from_rgba_speed(
+        pixmap.width() as _,
+        pixmap.height() as _,
+        pixels.as_mut_slice(),
+        speed,
+    );
 
     Box::into_raw(Box::from(frame)) as _
 }
