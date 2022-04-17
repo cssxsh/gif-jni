@@ -4,6 +4,7 @@ mod quantizer;
 mod ditherer;
 
 use std::fs::File;
+use std::slice::from_raw_parts;
 use gif::*;
 use jni::JNIEnv;
 use jni::objects::JString;
@@ -253,7 +254,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
     let image = Image::wrap(image_ptr as *mut SkImage)
         .unwrap_or_else(|| _env.fatal_error("wrap image fail."));
 
-    if image.color_type() != ColorType::RGBA8888 {
+    if image.color_type() != ColorType::RGBA8888 && image.color_type() != ColorType::RGB888x {
         _env.fatal_error("color_type isn't RGBA8888")
     }
 
@@ -276,7 +277,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
         .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
 
-    if bitmap.color_type() != ColorType::RGBA8888 {
+    if bitmap.color_type() != ColorType::RGBA8888 && bitmap.color_type() != ColorType::RGB888x {
         _env.fatal_error("color_type isn't RGBA8888")
     }
 
@@ -299,7 +300,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
         .unwrap_or_else(|| _env.fatal_error("wrap SkPixmap"));
     let pixmap = Pixmap::wrap_ref(sk_pixmap.inner());
 
-    if pixmap.color_type() != ColorType::RGBA8888 {
+    if pixmap.color_type() != ColorType::RGBA8888 && pixmap.color_type() != ColorType::RGB888x {
         _env.fatal_error("color_type isn't RGBA8888")
     }
 
@@ -411,9 +412,9 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024gif(
         Some(vec) => {
             let arr = _env.new_byte_array(vec.len() as jsize)
                 .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-            let bytes: Vec<i8> = vec.iter().map(|b| *b as i8).collect();
+            let buf= unsafe { from_raw_parts(vec.as_ptr() as *const jbyte, vec.len()) };
 
-            _env.set_byte_array_region(arr, 0, &bytes)
+            _env.set_byte_array_region(arr, 0, buf)
                 .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
             arr
