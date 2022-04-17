@@ -115,7 +115,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
     let image = Image::wrap(image_ptr as *mut SkImage)
         .unwrap_or_else(|| _env.fatal_error("wrap image fail."));
 
-    if image.color_type() != ColorType::RGBA8888 {
+    if image.color_type() != ColorType::RGBA8888 && image.color_type() != ColorType::RGB888x {
         _env.fatal_error("color_type isn't RGBA8888")
     }
 
@@ -125,7 +125,37 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
     let bytes = pixmap.bytes()
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
-    let mut frame = Frame::from_rgba(image.width() as _, image.width() as _, pixels.as_mut_slice());
+    let mut frame = Frame::from_rgba(image.width() as _, image.height() as _, pixels.as_mut_slice());
+
+    frame.delay = delay as _;
+    frame.dispose = DisposalMethod::from_u8(dispose as _)
+        .unwrap_or_else(|| _env.fatal_error("get dispose method fail"));
+
+    encoder.write_frame(&frame)
+        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
+
+    Box::into_raw(encoder) as _
+}
+
+#[no_mangle]
+pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
+    _env: JNIEnv, _this: jclass, encoder_ptr: jlong, bitmap_ptr: jlong, delay: jint, dispose: jint,
+) -> jlong {
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as *mut SkBitmap)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
+    let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
+
+    if bitmap.color_type() != ColorType::RGBA8888 && bitmap.color_type() != ColorType::RGB888x {
+        _env.fatal_error("color_type isn't RGBA8888")
+    }
+
+    let mut encoder = unsafe { Box::from_raw(encoder_ptr as *mut Encoder<File>) };
+    let pixmap = bitmap.peek_pixels()
+        .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
+    let bytes = pixmap.bytes()
+        .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
+    let mut pixels = bytes.to_vec();
+    let mut frame = Frame::from_rgba(bitmap.width() as _, bitmap.height() as _, pixels.as_mut_slice());
 
     frame.delay = delay as _;
     frame.dispose = DisposalMethod::from_u8(dispose as _)
@@ -233,7 +263,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
 
-    let frame = Frame::from_rgba(image.width() as _, image.width() as _, pixels.as_mut_slice());
+    let frame = Frame::from_rgba(image.width() as _, image.height() as _, pixels.as_mut_slice());
 
     Box::into_raw(Box::from(frame)) as _
 }
@@ -256,7 +286,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
 
-    let frame = Frame::from_rgba(bitmap.width() as _, bitmap.width() as _, pixels.as_mut_slice());
+    let frame = Frame::from_rgba(bitmap.width() as _, bitmap.height() as _, pixels.as_mut_slice());
 
     Box::into_raw(Box::from(frame)) as _
 }
@@ -277,7 +307,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
         .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
     let mut pixels = bytes.to_vec();
 
-    let frame = Frame::from_rgba(pixmap.width() as _, pixmap.width() as _, pixels.as_mut_slice());
+    let frame = Frame::from_rgba(pixmap.width() as _, pixmap.height() as _, pixels.as_mut_slice());
 
     Box::into_raw(Box::from(frame)) as _
 }
