@@ -4,57 +4,303 @@ mod quantizer;
 mod ditherer;
 
 use std::fs::File;
+use std::slice;
 use gif::*;
 use jni::JNIEnv;
 use jni::objects::JString;
 use jni::sys::*;
 use skia_safe::*;
+use skia_safe::image::*;
 use skia_safe::wrapper::*;
 use quantizer::quantizer::*;
+use ditherer::ditherer::*;
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_octtree(
+pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024OctTree_native(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, count: jint, sort: jboolean,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _).expect("wrap SkBitmap");
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
-    let colors = bitmap.pixmap().pixels().expect("quantizer read pixels");
+    let mut vec: Vec<[u8; 4]>;
+    let pixels = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            bitmap.pixmap().pixels()
+                .unwrap_or_else(|| _env.fatal_error("get pixels fail."))
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size() / 4;
+            vec = Vec::with_capacity(capacity);
+            vec.resize(capacity, [0; 4]);
 
-    let mut arr = octtree_quantizer(colors, count as _, sort == JNI_TRUE);
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                vec.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
 
-    println!("{:?}", arr);
+            vec.as_slice()
+        }
+    };
 
-    arr.as_mut_ptr() as _
+    let palette = octtree_quantizer(pixels, count as _, sort == JNI_TRUE);
+    let bytes = unsafe { slice::from_raw_parts(palette.as_ptr() as _, palette.len() * 3) };
+    let data = Data::new_copy(bytes);
+
+    data.unwrap() as _
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_mediancut(
+pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024MedianCut_native(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, count: jint, sort: jboolean,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _).expect("wrap SkBitmap");
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
-    let colors = bitmap.pixmap().pixels().expect("quantizer read pixels");
+    let mut vec: Vec<[u8; 4]>;
+    let pixels = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            bitmap.pixmap().pixels()
+                .unwrap_or_else(|| _env.fatal_error("get pixels fail."))
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size() / 4;
+            vec = Vec::with_capacity(capacity);
+            vec.resize(capacity, [0; 4]);
 
-    let mut arr = mediancut_quantizer(colors, count as _, sort == JNI_TRUE);
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                vec.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
 
-    println!("{:?}", arr);
+            vec.as_slice()
+        }
+    };
 
-    arr.as_mut_ptr() as _
+    let palette = mediancut_quantizer(pixels, count as _, sort == JNI_TRUE);
+    let bytes = unsafe { slice::from_raw_parts(palette.as_ptr() as _, palette.len() * 3) };
+    let data = Data::new_copy(bytes);
+
+    sk_bitmap.unwrap();
+    data.unwrap() as _
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_kmeans(
+pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024KMeans_native(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, count: jint, sort: jboolean,
 ) -> jlong {
-    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _).expect("wrap SkBitmap");
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
-    let colors = bitmap.pixmap().pixels().expect("quantizer read pixels");
+    let mut vec: Vec<[u8; 4]>;
+    let pixels = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            bitmap.pixmap().pixels()
+                .unwrap_or_else(|| _env.fatal_error("get pixels fail."))
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size() / 4;
+            vec = Vec::with_capacity(capacity);
+            vec.resize(capacity, [0; 4]);
 
-    let mut arr = kmeans_quantizer(colors, count as _, sort == JNI_TRUE);
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                vec.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
 
-    println!("{:?}", arr);
+            vec.as_slice()
+        }
+    };
 
-    arr.as_mut_ptr() as _
+    let palette = kmeans_quantizer(pixels, count as _, sort == JNI_TRUE);
+    let bytes = unsafe { slice::from_raw_parts(palette.as_ptr() as _, palette.len() * 3) };
+    let data = Data::new_copy(bytes);
+
+    sk_bitmap.unwrap();
+    data.unwrap() as _
+}
+
+#[no_mangle]
+pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024Atkinson_native(
+    _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, palette_ptr: jlong,
+) -> jlong {
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
+    let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
+    let data = Data::wrap(palette_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap palette fail."));
+    let mut pixels: Vec<[u8; 4]>;
+    let colors: &[[u8; 4]] = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            bitmap.pixmap().pixels()
+                .unwrap_or_else(|| _env.fatal_error("get pixels fail."))
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size() / 4;
+            pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, [0; 4]);
+
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
+
+            pixels.as_slice()
+        }
+    };
+    let palette = unsafe { slice::from_raw_parts(data.as_ptr() as _, data.len() / 3) };
+
+    let temp = atkinson_ditherer(colors, bitmap.width(), bitmap.height(), palette);
+    let bytes = unsafe { slice::from_raw_parts(temp.as_ptr() as _, temp.len() * 3) };
+    let result = Data::new_copy(bytes);
+
+    sk_bitmap.unwrap();
+    data.unwrap();
+    result.unwrap() as _
+}
+
+#[no_mangle]
+pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024JJN_native(
+    _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, palette_ptr: jlong,
+) -> jlong {
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
+    let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
+    let data = Data::wrap(palette_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap palette fail."));
+    let mut pixels: Vec<[u8; 4]>;
+    let colors: &[[u8; 4]] = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            bitmap.pixmap().pixels()
+                .unwrap_or_else(|| _env.fatal_error("get pixels fail."))
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size() / 4;
+            pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, [0; 4]);
+
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
+
+            pixels.as_slice()
+        }
+    };
+    let palette = unsafe { slice::from_raw_parts(data.as_ptr() as _, data.len() / 3) };
+
+    let temp = atkinson_ditherer(colors, bitmap.width(), bitmap.height(), palette);
+    let bytes = unsafe { slice::from_raw_parts(temp.as_ptr() as _, temp.len() * 3) };
+    let result = Data::new_copy(bytes);
+
+    sk_bitmap.unwrap();
+    data.unwrap();
+    result.unwrap() as _
+}
+
+#[no_mangle]
+pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024SierraLite_native(
+    _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, palette_ptr: jlong,
+) -> jlong {
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
+    let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
+    let data = Data::wrap(palette_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap palette fail."));
+    let mut pixels: Vec<[u8; 4]>;
+    let colors: &[[u8; 4]] = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            bitmap.pixmap().pixels()
+                .unwrap_or_else(|| _env.fatal_error("get pixels fail."))
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size() / 4;
+            pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, [0; 4]);
+
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
+
+            pixels.as_slice()
+        }
+    };
+    let palette = unsafe { slice::from_raw_parts(data.as_ptr() as _, data.len() / 3) };
+
+    let temp = atkinson_ditherer(colors, bitmap.width(), bitmap.height(), palette);
+    let bytes = unsafe { slice::from_raw_parts(temp.as_ptr() as _, temp.len() * 3) };
+    let result = Data::new_copy(bytes);
+
+    sk_bitmap.unwrap();
+    data.unwrap();
+    result.unwrap() as _
+}
+
+#[no_mangle]
+pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024Stucki_native(
+    _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, palette_ptr: jlong,
+) -> jlong {
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
+    let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
+    let data = Data::wrap(palette_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap palette fail."));
+    let mut pixels: Vec<[u8; 4]>;
+    let colors: &[[u8; 4]] = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            bitmap.pixmap().pixels()
+                .unwrap_or_else(|| _env.fatal_error("get pixels fail."))
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size() / 4;
+            pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, [0; 4]);
+
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
+
+            pixels.as_slice()
+        }
+    };
+    let palette = unsafe { slice::from_raw_parts(data.as_ptr() as _, data.len() / 3) };
+
+    let temp = atkinson_ditherer(colors, bitmap.width(), bitmap.height(), palette);
+    let bytes = unsafe { slice::from_raw_parts(temp.as_ptr() as _, temp.len() * 3) };
+    let result = Data::new_copy(bytes);
+
+    sk_bitmap.unwrap();
+    data.unwrap();
+    result.unwrap() as _
 }
 
 #[no_mangle]
@@ -116,17 +362,34 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
     }
     let image = Image::wrap(image_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap image fail."));
-
-    if image.color_type() != ColorType::RGBA8888 && image.color_type() != ColorType::RGB888x {
-        _env.fatal_error("color_type isn't RGBA8888")
-    }
-
     let mut encoder: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
-    let pixmap = image.peek_pixels()
-        .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
-    let bytes = pixmap.bytes()
-        .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
-    let mut pixels = bytes.to_vec();
+
+    let mut pixels = match image.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            let pixmap = image.peek_pixels()
+                .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
+            let bytes = pixmap.bytes()
+                .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
+            bytes.to_vec()
+        }
+        _ => {
+            let image_info = image.image_info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size();
+            let mut pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, 0);
+
+            image.read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+                CachingHint::Allow,
+            );
+
+            pixels
+        }
+    };
     let mut frame = Frame::from_rgba_speed(
         image.width() as _,
         image.height() as _,
@@ -156,16 +419,30 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
         .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
 
-    if bitmap.color_type() != ColorType::RGBA8888 && bitmap.color_type() != ColorType::RGB888x {
-        _env.fatal_error("color_type isn't RGBA8888")
-    }
-
     let mut encoder: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
-    let pixmap = bitmap.peek_pixels()
-        .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
-    let bytes = pixmap.bytes()
-        .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
-    let mut pixels = bytes.to_vec();
+    let mut pixels = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            let bytes = bitmap.pixmap().bytes()
+                .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
+            bytes.to_vec()
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size();
+            let mut pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, 0);
+
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
+
+            pixels
+        }
+    };
     let mut frame = Frame::from_rgba_speed(
         bitmap.width() as _,
         bitmap.height() as _,
@@ -283,15 +560,32 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024mirai_1skia_1plu
     let image = Image::wrap(image_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap image fail."));
 
-    if image.color_type() != ColorType::RGBA8888 && image.color_type() != ColorType::RGB888x {
-        _env.fatal_error("color_type isn't RGBA8888")
-    }
+    let mut pixels = match image.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            let pixmap = image.peek_pixels()
+                .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
+            let bytes = pixmap.bytes()
+                .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
+            bytes.to_vec()
+        }
+        _ => {
+            let image_info = image.image_info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size();
+            let mut pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, 0);
 
-    let pixmap = image.peek_pixels()
-        .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
-    let bytes = pixmap.bytes()
-        .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
-    let mut pixels = bytes.to_vec();
+            image.read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+                CachingHint::Allow,
+            );
+
+            pixels
+        }
+    };
 
     let frame = Frame::from_rgba_speed(
         image.width() as _,
@@ -315,15 +609,29 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024mirai_1skia_1pl
         .unwrap_or_else(|| _env.fatal_error("wrap SkBitmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
 
-    if bitmap.color_type() != ColorType::RGBA8888 && bitmap.color_type() != ColorType::RGB888x {
-        _env.fatal_error("color_type isn't RGBA8888")
-    }
+    let mut pixels = match bitmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            let bytes = bitmap.pixmap().bytes()
+                .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
+            bytes.to_vec()
+        }
+        _ => {
+            let image_info = bitmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size();
+            let mut pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, 0);
 
-    let pixmap = bitmap.peek_pixels()
-        .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
-    let bytes = pixmap.bytes()
-        .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
-    let mut pixels = bytes.to_vec();
+            bitmap.pixmap().read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
+
+            pixels
+        }
+    };
 
     let frame = Frame::from_rgba_speed(
         bitmap.width() as _,
@@ -347,13 +655,29 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024mirai_1skia_1pl
         .unwrap_or_else(|| _env.fatal_error("wrap SkPixmap"));
     let pixmap = Pixmap::wrap_ref(sk_pixmap.inner());
 
-    if pixmap.color_type() != ColorType::RGBA8888 && pixmap.color_type() != ColorType::RGB888x {
-        _env.fatal_error("color_type isn't RGBA8888")
-    }
+    let mut pixels = match pixmap.color_type() {
+        ColorType::RGBA8888 | ColorType::RGB888x => {
+            let bytes = pixmap.bytes()
+                .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
+            bytes.to_vec()
+        }
+        _ => {
+            let image_info = pixmap.info()
+                .with_color_type(ColorType::RGBA8888);
+            let capacity = image_info.compute_min_byte_size();
+            let mut pixels = Vec::with_capacity(capacity);
+            pixels.resize(capacity, 0);
 
-    let bytes = pixmap.bytes()
-        .unwrap_or_else(|| _env.fatal_error("get pixels bytes fail."));
-    let mut pixels = bytes.to_vec();
+            pixmap.read_pixels(
+                &image_info,
+                pixels.as_mut_slice(),
+                image_info.min_row_bytes(),
+                IPoint { x: 0, y: 0 },
+            );
+
+            pixels
+        }
+    };
 
     let frame = Frame::from_rgba_speed(
         pixmap.width() as _,

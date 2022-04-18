@@ -1,4 +1,6 @@
-type ARGB = [u8; 4];
+type RGBA = [u8; 4];
+
+type RGB = [u8; 3];
 
 pub struct ErrorComponent {
     delta_x: i32,
@@ -6,34 +8,33 @@ pub struct ErrorComponent {
     power: f64,
 }
 
-fn nearest(original: &ARGB, replacement: &ARGB) -> u32 {
-    let r = original[1] as i32 - replacement[1] as i32;
-    let g = original[2] as i32 - replacement[2] as i32;
-    let b = original[3] as i32 - replacement[3] as i32;
+fn nearest(original: &RGBA, replacement: &RGB) -> u32 {
+    let r = original[0] as i32 - replacement[0] as i32;
+    let g = original[1] as i32 - replacement[1] as i32;
+    let b = original[2] as i32 - replacement[2] as i32;
 
     (r * r + g * g + b * b) as u32
 }
 
-fn minus(original: &ARGB, replacement: &ARGB) -> ARGB {
+fn minus(original: &RGBA, replacement: &RGB) -> RGB {
     [
         original[0] - replacement[0],
         original[1] - replacement[1],
         original[2] - replacement[2],
-        original[3] - replacement[3],
     ]
 }
 
-fn add(original: &ARGB, offset: &ARGB) -> ARGB {
+fn add(original: &RGBA, offset: &RGB) -> RGBA {
     [
         original[0] + offset[0],
         original[1] + offset[1],
         original[2] + offset[2],
-        original[3] + offset[3],
+        original[3],
     ]
 }
 
-pub fn ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>, distribution: &[ErrorComponent]) -> Box<[ARGB]> {
-    let mut raw: Box<[ARGB]> = Box::from(colors);
+pub fn ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB], distribution: &[ErrorComponent]) -> Vec<RGBA> {
+    let mut raw = Vec::from(colors);
 
     for x in 0..(width - 1) {
         for y in 0..(height - 1) {
@@ -62,7 +63,7 @@ pub fn ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>, 
     raw
 }
 
-pub fn atkinson_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+pub fn atkinson_ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB]) -> Vec<RGBA> {
     let distribution = [
         ErrorComponent { delta_x: 1, delta_y: 0, power: 1.0 / 8.0 },
         ErrorComponent { delta_x: 2, delta_y: 0, power: 1.0 / 8.0 },
@@ -77,7 +78,7 @@ pub fn atkinson_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<
     ditherer(colors, width, height, palette, &distribution)
 }
 
-pub fn jjn_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+pub fn jjn_ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB]) -> Vec<RGBA> {
     let distribution = [
         ErrorComponent { delta_x: 1, delta_y: 0, power: 7.0 / 48.0 },
         ErrorComponent { delta_x: 2, delta_y: 0, power: 5.0 / 48.0 },
@@ -98,7 +99,7 @@ pub fn jjn_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB
     ditherer(colors, width, height, palette, &distribution)
 }
 
-pub fn sierra_lite_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+pub fn sierra_lite_ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB]) -> Vec<RGBA> {
     let distribution = [
         ErrorComponent { delta_x: 1, delta_y: 0, power: 2.0 / 4.0 },
         //
@@ -109,7 +110,7 @@ pub fn sierra_lite_ditherer(colors: &[ARGB], width: i32, height: i32, palette: B
     ditherer(colors, width, height, palette, &distribution)
 }
 
-pub fn stucki_ditherer(colors: &[ARGB], width: i32, height: i32, palette: Box<[ARGB]>) -> Box<[ARGB]> {
+pub fn stucki_ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB]) -> Vec<RGBA> {
     let distribution = [
         ErrorComponent { delta_x: 1, delta_y: 0, power: 8.0 / 48.0 },
         ErrorComponent { delta_x: 2, delta_y: 0, power: 4.0 / 48.0 },
