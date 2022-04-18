@@ -193,7 +193,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_close(
 
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_default_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_default_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass,
 ) -> jlong {
     let frame = Frame::default();
@@ -202,7 +202,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_default_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromIndexedPixels_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromIndexedPixels_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, transparent: jint,
 ) -> jlong {
     let pixels = Data::wrap(pixels as _)
@@ -220,7 +220,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromIndexedPixels_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPalettePixels_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPalettePixels_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, palette: jlong, transparent: jint,
 ) -> jlong {
     let pixels = Data::wrap(pixels as _)
@@ -241,7 +241,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPalettePixels_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, speed: jint,
 ) -> jlong {
     if !(1..30).contains(&speed) {
@@ -258,7 +258,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024gif(
 
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, speed: jint,
 ) -> jlong {
     if !(1..30).contains(&speed) {
@@ -274,7 +274,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, image_ptr: jlong, speed: jint,
 ) -> jlong {
     if !(1..30).contains(&speed) {
@@ -305,7 +305,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, speed: jint,
 ) -> jlong {
     if !(1..30).contains(&speed) {
@@ -337,7 +337,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, pixmap_ptr: jlong, speed: jint,
 ) -> jlong {
     if !(1..30).contains(&speed) {
@@ -367,14 +367,14 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_close_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_close_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) {
-    unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+    let _: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDelay_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDelay_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jint {
     let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
@@ -386,7 +386,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDelay_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDelay_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDelay_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint,
 ) {
     let mut frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
@@ -397,7 +397,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDelay_00024gif(
 
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDispose_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDispose_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jint {
     let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
@@ -409,7 +409,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDispose_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDispose_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDispose_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint,
 ) {
     let mut frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
@@ -420,7 +420,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDispose_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getRect_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getRect_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jintArray {
     let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
@@ -442,7 +442,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getRect_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setRect_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setRect_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong, top: jint, left: jint, width: jint, height: jint,
 ) {
     let mut frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
@@ -455,7 +455,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setRect_00024gif(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024gif(
+pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jlong {
     let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
@@ -467,6 +467,8 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024gif(
             Data::new_copy(vec.as_slice())
         }
     };
+
+    Box::into_raw(frame);
 
     data.unwrap() as _
 }
