@@ -4,7 +4,6 @@ mod quantizer;
 mod ditherer;
 
 use std::fs::File;
-use std::slice::from_raw_parts;
 use gif::*;
 use jni::JNIEnv;
 use jni::objects::JString;
@@ -60,7 +59,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_quantizer_Quantizer_kmeans(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_file(
-    _env: JNIEnv, _this: jclass, path: JString, width: jint, height: jint, palette: jbyteArray,
+    _env: JNIEnv, _this: jclass, path: JString, width: jint, height: jint, palette: jlong,
 ) -> jlong {
     let str = _env.get_string(path)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
@@ -68,20 +67,21 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_file(
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
     let file = File::create(text)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-    let global_palette = _env.convert_byte_array(palette)
-        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-    let encoder = Encoder::new(file, width as _, height as _, global_palette.as_slice())
+    let global_palette = Data::wrap(palette as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap palette fail."));
+    let encoder = Encoder::new(file, width as _, height as _, global_palette.as_bytes())
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
+    global_palette.unwrap();
     Box::into_raw(Box::new(encoder)) as _
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_setRepeat(
     _env: JNIEnv, _this: jclass, encoder_ptr: jlong, value: jint,
-) -> jlong {
-    let mut encoder = unsafe { Box::from_raw(encoder_ptr as *mut Encoder<File>) };
-    let repeat = if value > 0 {
+) {
+    let mut encoder: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
+    let repeat = if (0..65535).contains(&value) {
         Repeat::Finite(value as _)
     } else {
         Repeat::Infinite
@@ -90,29 +90,28 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_setRepeat(
     encoder.set_repeat(repeat)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
-    Box::into_raw(encoder) as _
+    Box::into_raw(encoder);
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeFrame(
     _env: JNIEnv, _this: jclass, encoder_ptr: jlong, frame_ptr: jlong,
-) -> jlong {
-    let mut encoder = unsafe { Box::from_raw(encoder_ptr as *mut Encoder<File>) };
-    let frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+) {
+    let mut encoder: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
+    let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
 
     encoder.write_frame(frame.as_ref())
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
     Box::into_raw(frame);
-
-    Box::into_raw(encoder) as _
+    Box::into_raw(encoder);
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
     _env: JNIEnv, _this: jclass, encoder_ptr: jlong, image_ptr: jlong, delay: jint, dispose: jint, speed: jint,
-) -> jlong {
-    if speed < 1 || speed > 30 {
+) {
+    if !(1..30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let image = Image::wrap(image_ptr as _)
@@ -122,7 +121,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
         _env.fatal_error("color_type isn't RGBA8888")
     }
 
-    let mut encoder = unsafe { Box::from_raw(encoder_ptr as *mut Encoder<File>) };
+    let mut encoder: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
     let pixmap = image.peek_pixels()
         .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
     let bytes = pixmap.bytes()
@@ -142,14 +141,15 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
     encoder.write_frame(&frame)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
-    Box::into_raw(encoder) as _
+    image.unwrap();
+    Box::into_raw(encoder);
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
     _env: JNIEnv, _this: jclass, encoder_ptr: jlong, bitmap_ptr: jlong, delay: jint, dispose: jint, speed: jint,
-) -> jlong {
-    if speed < 1 || speed > 30 {
+) {
+    if !(1..30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
@@ -160,7 +160,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
         _env.fatal_error("color_type isn't RGBA8888")
     }
 
-    let mut encoder = unsafe { Box::from_raw(encoder_ptr as *mut Encoder<File>) };
+    let mut encoder: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
     let pixmap = bitmap.peek_pixels()
         .unwrap_or_else(|| _env.fatal_error("peek pixels fail."));
     let bytes = pixmap.bytes()
@@ -180,7 +180,8 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
     encoder.write_frame(&frame)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
-    Box::into_raw(encoder) as _
+    sk_bitmap.unwrap();
+    Box::into_raw(encoder);
 }
 
 #[no_mangle]
@@ -202,68 +203,73 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_default_00024gif(
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromIndexedPixels_00024gif(
-    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jbyteArray, transparent: jint,
+    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, transparent: jint,
 ) -> jlong {
-    let pixels = _env.convert_byte_array(pixels)
-        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
+    let pixels = Data::wrap(pixels as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap pixels fail."));
     let transparent = if (0..255).contains(&transparent) {
         Some(transparent as u8)
     } else {
         None
     };
 
-    let frame = Frame::from_indexed_pixels(width as _, height as _, pixels.as_slice(), transparent);
+    let frame = Frame::from_indexed_pixels(width as _, height as _, pixels.as_bytes(), transparent);
 
+    pixels.unwrap();
     Box::into_raw(Box::from(frame)) as _
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPalettePixels_00024gif(
-    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jbyteArray, palette: jbyteArray, transparent: jint,
+    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, palette: jlong, transparent: jint,
 ) -> jlong {
-    let pixels = _env.convert_byte_array(pixels)
-        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-    let palette = _env.convert_byte_array(palette)
-        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
+    let pixels = Data::wrap(pixels as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap pixels fail."));
+    let palette = Data::wrap(palette as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap palette fail."));
     let transparent = if (0..255).contains(&transparent) {
         Some(transparent as u8)
     } else {
         None
     };
 
-    let frame = Frame::from_palette_pixels(width as _, height as _, pixels.as_slice(), palette.as_slice(), transparent);
+    let frame = Frame::from_palette_pixels(width as _, height as _, pixels.as_bytes(), palette.as_bytes(), transparent);
 
+    pixels.unwrap();
+    palette.unwrap();
     Box::into_raw(Box::from(frame)) as _
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024gif(
-    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jbyteArray, speed: jint,
+    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, speed: jint,
 ) -> jlong {
-    if speed < 1 || speed > 30 {
+    if !(1..30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
-    let pixels = _env.convert_byte_array(pixels)
-        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
+    let pixels = Data::wrap(pixels as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap pixels fail."));
 
-    let frame = Frame::from_rgb_speed(width as _, height as _, pixels.as_slice(), speed as _);
+    let frame = Frame::from_rgb_speed(width as _, height as _, pixels.as_bytes(), speed as _);
 
+    pixels.unwrap();
     Box::into_raw(Box::from(frame)) as _
 }
 
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024gif(
-    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jbyteArray, speed: jint,
+    _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, speed: jint,
 ) -> jlong {
-    if speed < 1 || speed > 30 {
+    if !(1..30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
-    let mut pixels = _env.convert_byte_array(pixels)
-        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
+    let pixels = Data::wrap(pixels as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap pixels fail."));
 
-    let frame = Frame::from_rgba_speed(width as _, height as _, pixels.as_mut_slice(), speed as _);
+    let frame = Frame::from_rgba_speed(width as _, height as _, pixels.to_vec().as_mut_slice(), speed as _);
 
+    pixels.unwrap();
     Box::into_raw(Box::from(frame)) as _
 }
 
@@ -271,7 +277,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024gif(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
     _env: JNIEnv, _this: jclass, image_ptr: jlong, speed: jint,
 ) -> jlong {
-    if speed < 1 || speed > 30 {
+    if !(1..30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let image = Image::wrap(image_ptr as _)
@@ -294,6 +300,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
         speed,
     );
 
+    image.unwrap();
     Box::into_raw(Box::from(frame)) as _
 }
 
@@ -301,7 +308,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024gif(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, speed: jint,
 ) -> jlong {
-    if speed < 1 || speed > 30 {
+    if !(1..30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
@@ -325,6 +332,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
         speed,
     );
 
+    sk_bitmap.unwrap();
     Box::into_raw(Box::from(frame)) as _
 }
 
@@ -332,7 +340,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024gif(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
     _env: JNIEnv, _this: jclass, pixmap_ptr: jlong, speed: jint,
 ) -> jlong {
-    if speed < 1 || speed > 30 {
+    if !(1..30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let sk_pixmap = RefHandle::wrap(pixmap_ptr as _)
@@ -354,6 +362,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024gif(
         speed,
     );
 
+    sk_pixmap.unwrap();
     Box::into_raw(Box::from(frame)) as _
 }
 
@@ -368,7 +377,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_close_00024gif(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDelay_00024gif(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jint {
-    let frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+    let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
     let value = frame.delay;
 
     Box::into_raw(frame);
@@ -379,11 +388,11 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDelay_00024gif(
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDelay_00024gif(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint,
-) -> jlong {
-    let mut frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+) {
+    let mut frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
     frame.delay = value as _;
 
-    Box::into_raw(frame) as _
+    Box::into_raw(frame);
 }
 
 
@@ -391,7 +400,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDelay_00024gif(
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDispose_00024gif(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jint {
-    let frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+    let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
     let value = frame.dispose;
 
     Box::into_raw(frame);
@@ -402,28 +411,30 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getDispose_00024gif(
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setDispose_00024gif(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong, value: jint,
-) -> jlong {
-    let mut frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+) {
+    let mut frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
     frame.dispose = DisposalMethod::from_u8(value as _)
         .unwrap_or_else(|| _env.fatal_error("get dispose method fail"));
 
-    Box::into_raw(frame) as _
+    Box::into_raw(frame);
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getRect_00024gif(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jintArray {
-    let frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+    let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
     let arr = _env.new_int_array(4)
         .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-
-    _env.set_int_array_region(arr, 0, &[
+    let buf = [
         frame.top as jint,
         frame.left as jint,
         frame.width as jint,
         frame.height as jint
-    ]).unwrap_or_else(|error| _env.fatal_error(error.to_string()));
+    ];
+
+    _env.set_int_array_region(arr, 0, &buf)
+        .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
 
     Box::into_raw(frame);
 
@@ -433,39 +444,29 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getRect_00024gif(
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_setRect_00024gif(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong, top: jint, left: jint, width: jint, height: jint,
-) -> jlong {
-    let mut frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
+) {
+    let mut frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
     frame.top = top as _;
     frame.left = left as _;
     frame.width = width as _;
     frame.height = height as _;
 
-    Box::into_raw(frame) as _
+    Box::into_raw(frame);
 }
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024gif(
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
-) -> jbyteArray {
-    let frame = unsafe { Box::from_raw(frame_ptr as *mut Frame) };
-    let arr = match &frame.palette {
+) -> jlong {
+    let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
+    let data = match &frame.palette {
         None => {
-            _env.new_byte_array(0)
-                .unwrap_or_else(|error| _env.fatal_error(error.to_string()))
+            Data::new_empty()
         }
         Some(vec) => {
-            let arr = _env.new_byte_array(vec.len() as jsize)
-                .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-            let buf = unsafe { from_raw_parts(vec.as_ptr() as *const jbyte, vec.len()) };
-
-            _env.set_byte_array_region(arr, 0, buf)
-                .unwrap_or_else(|error| _env.fatal_error(error.to_string()));
-
-            arr
+            Data::new_copy(vec.as_slice())
         }
     };
 
-    Box::into_raw(frame);
-
-    arr
+    data.unwrap() as _
 }
