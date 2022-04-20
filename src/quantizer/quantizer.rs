@@ -27,13 +27,13 @@ enum Node {
 
 impl Node {
     fn value(&self) -> (u32, u32, u32, u32) {
-        match *self {
+        match self {
             Node::Leaf {
                 red_sum,
                 green_sum,
                 blue_sum,
                 pixel_count,
-            } => (red_sum, green_sum, blue_sum, pixel_count),
+            } => (*red_sum, *green_sum, *blue_sum, *pixel_count),
             Node::Branch { .. } => (0, 0, 0, 0),
         }
     }
@@ -54,13 +54,10 @@ impl Node {
             }
             Node::Branch { children } => {
                 for child in children.iter() {
-                    match child {
-                        None => {}
-                        Some(link) => {
-                            link.try_borrow_mut()
-                                .expect("palette get node")
-                                .palette_sort(colors);
-                        }
+                    if let Some(link) = child {
+                        link.try_borrow_mut()
+                            .expect("palette get node")
+                            .palette_sort(colors);
                     }
                 }
             }
@@ -83,13 +80,10 @@ impl Node {
             }
             Node::Branch { children } => {
                 for child in children.iter() {
-                    match child {
-                        None => {}
-                        Some(link) => {
-                            link.try_borrow_mut()
-                                .expect("palette get node")
-                                .palette(colors);
-                        }
+                    if let Some(link) = child {
+                        link.try_borrow_mut()
+                            .expect("palette get node")
+                            .palette(colors);
                     }
                 }
             }
@@ -193,19 +187,16 @@ impl OctTree {
             Node::Leaf { .. } => {}
             Node::Branch { children, .. } => {
                 for child in children.iter() {
-                    match child {
-                        None => {}
-                        Some(link) => {
-                            let (red, green, blue, pixel) = link.try_borrow()
-                                .expect("get link value")
-                                .value();
-                            red_sum += red;
-                            green_sum += green;
-                            blue_sum += blue;
-                            pixel_count += pixel;
+                    if let Some(link) = child {
+                        let (red, green, blue, pixel) = link.try_borrow()
+                            .expect("get link value")
+                            .value();
+                        red_sum += red;
+                        green_sum += green;
+                        blue_sum += blue;
+                        pixel_count += pixel;
 
-                            self.leaf_count -= 1
-                        }
+                        self.leaf_count -= 1
                     }
                 }
             }
@@ -367,11 +358,10 @@ fn init_centroids(elements: &HashMap<RGB, usize>, capacity: usize) -> HashSet<RG
     let mut set = HashSet::with_capacity(capacity);
     let mut keys = elements.keys();
     while set.len() < capacity {
-        match keys.next() {
-            None => {}
-            Some(color) => {
-                set.insert(*color);
-            }
+        if let Some(color) = keys.next() {
+            set.insert(*color);
+        } else {
+            break;
         }
     }
 
@@ -382,21 +372,9 @@ fn distinct_elements(colors: &[RGBA]) -> HashMap<RGB, usize> {
     let mut map = HashMap::with_capacity(colors.len());
 
     for color in colors {
-        let rgb = [
-            color[0],
-            color[1],
-            color[2]
-        ];
-        let value = match map.get(&rgb) {
-            None => {
-                0
-            }
-            Some(count) => {
-                count + 1
-            }
-        };
-
-        map.insert(rgb, value);
+        let rgb = [color[0], color[1], color[2]];
+        let count = map.entry(rgb).or_insert(0);
+        *count = 1;
     }
 
     map
@@ -438,15 +416,9 @@ pub fn kmeans_quantizer(colors: &[RGBA], max_color_count: usize, sort: bool) -> 
         let nearest = nearest_color(&centroids, &color);
         let rc = rc.clone();
         let mut clusters = rc.borrow_mut();
-        let record = clusters.get_mut(&nearest);
-        match record {
-            None => {
-                clusters.insert(nearest, HashMap::from([(color, count)]));
-            }
-            Some(hash_map) => {
-                hash_map.insert(color, count);
-            }
-        }
+        let record = clusters.entry(nearest)
+            .or_insert_with(|| HashMap::new());
+        record.insert(color, count);
     }
 
     while !centroids.is_empty() {
@@ -468,15 +440,9 @@ pub fn kmeans_quantizer(colors: &[RGBA], max_color_count: usize, sort: bool) -> 
                 let rc = rc.clone();
                 let mut clusters = rc.borrow_mut();
 
-                let record = clusters.get_mut(&new_centroid);
-                match record {
-                    None => {
-                        clusters.insert(new_centroid, HashMap::from([(color.clone(), count)]));
-                    }
-                    Some(hash_map) => {
-                        hash_map.insert(color.clone(), count);
-                    }
-                };
+                let record = clusters.entry(new_centroid)
+                    .or_insert_with(|| HashMap::new());
+                record.insert(color.clone(), count);
                 cluster.remove(&color);
 
                 centroids.insert(*centroid);

@@ -784,13 +784,10 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024mirai_1skia_1pl
     _env: JNIEnv, _this: jclass, frame_ptr: jlong,
 ) -> jlong {
     let frame: Box<Frame> = unsafe { Box::from_raw(frame_ptr as _) };
-    let data = match &frame.palette {
-        None => {
-            Data::new_empty()
-        }
-        Some(vec) => {
-            Data::new_copy(vec.as_slice())
-        }
+    let data = if let Some(vec) = &frame.palette {
+        Data::new_copy(vec.as_slice())
+    } else {
+        Data::new_empty()
     };
 
     Box::into_raw(frame);
