@@ -50,6 +50,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024OctTree_native(
     let bytes = unsafe { slice::from_raw_parts(palette.as_ptr() as _, palette.len() * 3) };
     let data = Data::new_copy(bytes);
 
+    sk_bitmap.unwrap();
     data.unwrap() as _
 }
 
