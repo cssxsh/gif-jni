@@ -209,7 +209,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024JJN_native(
     };
     let palette = unsafe { slice::from_raw_parts(data.as_ptr() as _, data.len() / 3) };
 
-    let temp = atkinson_ditherer(colors, bitmap.width(), bitmap.height(), palette);
+    let temp = jjn_ditherer(colors, bitmap.width(), bitmap.height(), palette);
     let bytes = unsafe { slice::from_raw_parts(temp.as_ptr() as _, temp.len() * 3) };
     let result = Data::new_copy(bytes);
 
@@ -252,7 +252,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024SierraLite_native(
     };
     let palette = unsafe { slice::from_raw_parts(data.as_ptr() as _, data.len() / 3) };
 
-    let temp = atkinson_ditherer(colors, bitmap.width(), bitmap.height(), palette);
+    let temp = sierra_lite_ditherer(colors, bitmap.width(), bitmap.height(), palette);
     let bytes = unsafe { slice::from_raw_parts(temp.as_ptr() as _, temp.len() * 3) };
     let result = Data::new_copy(bytes);
 
@@ -295,7 +295,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024Stucki_native(
     };
     let palette = unsafe { slice::from_raw_parts(data.as_ptr() as _, data.len() / 3) };
 
-    let temp = atkinson_ditherer(colors, bitmap.width(), bitmap.height(), palette);
+    let temp = stucki_ditherer(colors, bitmap.width(), bitmap.height(), palette);
     let bytes = unsafe { slice::from_raw_parts(temp.as_ptr() as _, temp.len() * 3) };
     let result = Data::new_copy(bytes);
 
