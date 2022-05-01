@@ -21,10 +21,20 @@ jobs:
         run: |
           rustup target add x86_64-pc-windows-msvc
 
+      - name: Install Cargo Bloat
+        shell: bash
+        run: |
+          cargo install cargo-bloat
+
       - name: Build
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-pc-windows-msvc
+
+      - name: Bloat
+        shell: bash
+        run: |
+          cargo bloat --release --crates --target x86_64-pc-windows-msvc
 
       - name: Upload
         uses: actions/upload-artifact@v3
@@ -53,10 +63,20 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-gnu
 
+      - name: Install Cargo Bloat
+        shell: bash
+        run: |
+          cargo install cargo-bloat
+
       - name: Build
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
+
+      - name: Bloat
+        shell: bash
+        run: |
+          cargo bloat --release --crates --target x86_64-unknown-linux-gnu
 
       - name: Upload
         uses: actions/upload-artifact@v3
@@ -83,10 +103,20 @@ jobs:
         run: |
           rustup target add x86_64-apple-darwin
 
+      - name: Install Cargo Bloat
+        shell: bash
+        run: |
+          cargo install cargo-bloat
+
       - name: Build
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-apple-darwin
+
+      - name: Bloat
+        shell: bash
+        run: |
+          cargo bloat --release --crates --target x86_64-apple-darwin
 
       - name: Upload
         uses: actions/upload-artifact@v3
