@@ -261,7 +261,7 @@ impl Cluster {
         let mut largest_spread: u8 = 0;
         let mut component_with_largest_spread: usize = 1;
 
-        for component in 0..2 {
+        for component in 0..3 {
             let mut min_: u8 = 0xFF;
             let mut max_: u8 = 0x00;
             for color in &raw {

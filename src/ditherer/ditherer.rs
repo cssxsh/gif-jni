@@ -36,8 +36,8 @@ fn add(original: &RGBA, offset: &RGB) -> RGBA {
 pub fn ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB], distribution: &[ErrorComponent]) -> Vec<RGBA> {
     let mut raw = Vec::from(colors);
 
-    for x in 0..(width - 1) {
-        for y in 0..(height - 1) {
+    for x in 0..width {
+        for y in 0..height {
             let index = (y * width + x) as usize;
             let original = colors.get(index)
                 .expect("ditherer get original color");

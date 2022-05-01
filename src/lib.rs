@@ -358,7 +358,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeFrame(
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
     _env: JNIEnv, _this: jclass, encoder_ptr: jlong, image_ptr: jlong, delay: jint, dispose: jint, speed: jint,
 ) {
-    if !(1..30).contains(&speed) {
+    if !(1..=30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let image = Image::wrap(image_ptr as _)
@@ -413,7 +413,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeImage(
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
     _env: JNIEnv, _this: jclass, encoder_ptr: jlong, bitmap_ptr: jlong, delay: jint, dispose: jint, speed: jint,
 ) {
-    if !(1..30).contains(&speed) {
+    if !(1..=30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
@@ -466,7 +466,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_writeBitmap(
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_close(
     _env: JNIEnv, _this: jclass, encoder_ptr: jlong,
 ) {
-    unsafe { Box::from_raw(encoder_ptr as *mut Encoder<File>) };
+    let _: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
 }
 
 
@@ -485,7 +485,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromIndexedPixels_00024mirai_1s
 ) -> jlong {
     let pixels = Data::wrap(pixels as _)
         .unwrap_or_else(|| _env.fatal_error("wrap pixels fail."));
-    let transparent = if (0..255).contains(&transparent) {
+    let transparent = if (0..=255).contains(&transparent) {
         Some(transparent as u8)
     } else {
         None
@@ -505,7 +505,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPalettePixels_00024mirai_1s
         .unwrap_or_else(|| _env.fatal_error("wrap pixels fail."));
     let palette = Data::wrap(palette as _)
         .unwrap_or_else(|| _env.fatal_error("wrap palette fail."));
-    let transparent = if (0..255).contains(&transparent) {
+    let transparent = if (0..=255).contains(&transparent) {
         Some(transparent as u8)
     } else {
         None
@@ -522,7 +522,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPalettePixels_00024mirai_1s
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, speed: jint,
 ) -> jlong {
-    if !(1..30).contains(&speed) {
+    if !(1..=30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let pixels = Data::wrap(pixels as _)
@@ -539,7 +539,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBSpeed_00024mirai_1skia_1
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, width: jint, height: jint, pixels: jlong, speed: jint,
 ) -> jlong {
-    if !(1..30).contains(&speed) {
+    if !(1..=30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let pixels = Data::wrap(pixels as _)
@@ -555,7 +555,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromRGBASpeed_00024mirai_1skia_
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, image_ptr: jlong, speed: jint,
 ) -> jlong {
-    if !(1..30).contains(&speed) {
+    if !(1..=30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let image = Image::wrap(image_ptr as _)
@@ -603,7 +603,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromImage_00024mirai_1skia_1plu
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, bitmap_ptr: jlong, speed: jint,
 ) -> jlong {
-    if !(1..30).contains(&speed) {
+    if !(1..=30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
@@ -649,7 +649,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromBitmap_00024mirai_1skia_1pl
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_fromPixmap_00024mirai_1skia_1plugin(
     _env: JNIEnv, _this: jclass, pixmap_ptr: jlong, speed: jint,
 ) -> jlong {
-    if !(1..30).contains(&speed) {
+    if !(1..=30).contains(&speed) {
         _env.fatal_error("speed needs to be in the range [1, 30]")
     }
     let sk_pixmap = RefHandle::wrap(pixmap_ptr as _)
