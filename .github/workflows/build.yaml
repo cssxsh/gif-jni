@@ -2,7 +2,7 @@ name: "build"
 on: [ push, pull_request ]
 
 jobs:
-  windows-build:
+  windows-x64-build:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -36,13 +36,69 @@ jobs:
         run: |
           cargo bloat --release --crates --target x86_64-pc-windows-msvc
 
+      - name: Rename Library File Name
+        shell: bash
+        run: |
+          mkdir library
+          cp target/x86_64-pc-windows-msvc/release/gif_jni.dll library/gif-windows-x64.dll
+          sha256sum library/gif-windows-x64.dll | awk '{ print $1 }' > library/gif-windows-x64.dll.sha256
+
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: windows-build
-          path: target/x86_64-pc-windows-msvc/release/gif_jni.*
+          name: windows-x64-build
+          path: library/*
 
-  linux-build:
+  linux-arm64-build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/pragmatrix/rust-skia-linux:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Prepare Rustup
+        run: (cd /github/home && ln -s /root/.cargo)
+
+      - name: Update Rustup and Rust
+        run: rustup update
+
+      - name: Configure Rust Toolchain
+        run: rustup default stable
+
+      - name: Install Rust Target
+        shell: bash
+        run: |
+          rustup target add aarch64-unknown-linux-gnu
+
+      - name: Install Cargo Bloat
+        shell: bash
+        run: |
+          cargo install cargo-bloat
+
+      - name: Build
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
+
+      - name: Bloat
+        shell: bash
+        run: |
+          cargo bloat --release --crates --target aarch64-unknown-linux-gnu
+
+      - name: Rename Library File Name
+        shell: bash
+        run: |
+          mkdir library
+          cp target/aarch64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-arm64.so
+          sha256sum library/libgif-linux-arm64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-arm64-build
+          path: library/*
+
+  linux-x64-build:
     runs-on: ubuntu-latest
     container: ghcr.io/pragmatrix/rust-skia-linux:latest
     steps:
@@ -78,13 +134,67 @@ jobs:
         run: |
           cargo bloat --release --crates --target x86_64-unknown-linux-gnu
 
+      - name: Rename Library File Name
+        shell: bash
+        run: |
+          mkdir library
+          cp target/x86_64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-x64.so
+          sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-x64.so.sha256
+
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: linux-build
-          path: target/x86_64-unknown-linux-gnu/release/libgif_jni.*
+          name: linux-x64-build
+          path: library/*
 
-  macos-build:
+  macos-arm64-build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@master
+        with:
+          rust-version: stable
+
+      - name: Remove LLVM (macOS)
+        run: brew uninstall llvm
+
+      - name: Install Rust Target
+        shell: bash
+        run: |
+          rustup target add aarch64-apple-darwin
+
+      - name: Install Cargo Bloat
+        shell: bash
+        run: |
+          cargo install cargo-bloat
+
+      - name: Build
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target aarch64-apple-darwin
+
+      - name: Bloat
+        shell: bash
+        run: |
+          cargo bloat --release --crates --target aarch64-apple-darwin
+
+      - name: Rename Library File Name
+        shell: bash
+        run: |
+          mkdir library
+          cp target/aarch64-apple-darwin/release/libgif_jni.dylib library/libgif-macos-arm64.dylib
+          sha256sum library/libgif-macos-arm64.dylib | awk '{ print $1 }' > library/libgif-macos-arm64.dylib.sha256
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-arm64-build
+          path: library/*
+
+  macos-x64-build:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -118,9 +228,16 @@ jobs:
         run: |
           cargo bloat --release --crates --target x86_64-apple-darwin
 
+      - name: Rename Library File Name
+        shell: bash
+        run: |
+          mkdir library
+          cp target/x86_64-apple-darwin/release/libgif_jni.dylib library/libgif-macos-x64.dylib
+          sha256sum library/libgif-macos-x64.dylib | awk '{ print $1 }' > library/libgif-macos-x64.dylib.sha256
+
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: macos-build
-          path: target/x86_64-apple-darwin/release/libgif_jni.*
+          name: macos-x64-build
+          path: library/*
 
