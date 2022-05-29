@@ -186,7 +186,7 @@ jobs:
         run: |
           mkdir library
           cp target/aarch64-apple-darwin/release/libgif_jni.dylib library/libgif-macos-arm64.dylib
-          sha256sum library/libgif-macos-arm64.dylib | awk '{ print $1 }' > library/libgif-macos-arm64.dylib.sha256
+          shasum -a 256 library/libgif-macos-arm64.dylib | awk '{ print $1 }' > library/libgif-macos-arm64.dylib.sha256
 
       - name: Upload
         uses: actions/upload-artifact@v3
@@ -233,7 +233,7 @@ jobs:
         run: |
           mkdir library
           cp target/x86_64-apple-darwin/release/libgif_jni.dylib library/libgif-macos-x64.dylib
-          sha256sum library/libgif-macos-x64.dylib | awk '{ print $1 }' > library/libgif-macos-x64.dylib.sha256
+          shasum -a 256 library/libgif-macos-x64.dylib | awk '{ print $1 }' > library/libgif-macos-x64.dylib.sha256
 
       - name: Upload
         uses: actions/upload-artifact@v3
