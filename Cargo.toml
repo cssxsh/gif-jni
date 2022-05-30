@@ -18,15 +18,3 @@ lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
-
-[target.x86_64-linux-android]
-cc="x86_64-linux-android26-clang"
-cxx="x86_64-linux-android26-clang++"
-ar = "x86_64-linux-android26-clang"
-linker = "x86_64-linux-android26-clang"
-
-[target.aarch64-linux-android]
-cc="aarch64-linux-android26-clang"
-cxx="aarch64-linux-android26-clang++"
-ar = "aarch64-linux-android26-clang"
-linker = "aarch64-linux-android26-clang"
