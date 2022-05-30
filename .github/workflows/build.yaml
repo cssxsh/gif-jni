@@ -41,6 +41,7 @@ jobs:
 
   linux-build:
     runs-on: ubuntu-latest
+    container: ghcr.io/pragmatrix/rust-skia-linux:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
