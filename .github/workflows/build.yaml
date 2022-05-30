@@ -71,6 +71,8 @@ jobs:
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
+        env:
+          BINDGEN_EXTRA_CLANG_ARGS_AARCH64_UNKNOWN_LINUX_GNU: link-args=--enable-cxx11 --enable-libcpp
 
       - name: Rename Library File Name
         shell: bash
@@ -114,18 +116,18 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
-          CC: x86_64-linux-android26-clang
-          CXX: x86_64-linux-android26-clang++
-          CARGO_TARGET_LINKER: x86_64-linux-android26-clang
+          CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
+          CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
+          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
 
       - name: Build Android ARM64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-linux-android
         env:
-          CC: aarch64-linux-android26-clang
-          CXX: aarch64-linux-android26-clang++
-          CARGO_TARGET_LINKER: aarch64-linux-android26-clang
+          CC_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
+          CXX_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang++
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: aarch64-linux-android26-clang
 
       - name: Rename Library File Name
         shell: bash
