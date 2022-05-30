@@ -59,6 +59,7 @@ jobs:
         shell: bash
         run: |
           rustup target add x86_64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-musl
           rustup target add x86_64-linux-android
           rustup target add aarch64-linux-android
 
@@ -67,13 +68,18 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
 
+      - name: Build Linux ARM64
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-musl
+
       - name: Build Android X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
-          CC_x86_64_linux_android: x86_64-linux-android26-clang
-          CXX_x86_64_linux_android: x86_64-linux-android26-clang++
+          CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
+          CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
           CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
 
       - name: Build Android ARM64
@@ -91,6 +97,8 @@ jobs:
           mkdir library
           cp target/x86_64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-x64.so
           sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-x64.so.sha256
+          cp target/aarch64-unknown-linux-musl/release/libgif_jni.so library/libgif-linux-arm64.so
+          sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
           cp target/x86_64-linux-android/release/libgif_jni.so library/libgif-android-x64.so
           sha256sum library/libgif-android-x64.so | awk '{ print $1 }' > library/libgif-android-x64.so.sha256
           cp target/aarch64-linux-android/release/libgif_jni.so library/libgif-android-arm64.so
