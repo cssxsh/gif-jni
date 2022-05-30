@@ -20,4 +20,4 @@ strip = true
 panic = "abort"
 
 [target.aarch64-linux-android]
-linker = "aarch64-linux-android-clang"
+linker = "aarch64-linux-android29-clang"
