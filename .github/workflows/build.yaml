@@ -67,11 +67,6 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
 
-      - name: Setup NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r21e
-
       - name: Build Android X64
         shell: bash
         run: |

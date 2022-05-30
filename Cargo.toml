@@ -19,8 +19,14 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
-[target.aarch64-linux-android]
-linker = "aarch64-linux-android29-clang"
-
 [target.x86_64-linux-android]
-linker = "x86_64-linux-android29-clang"
+cc="x86_64-linux-android26-clang"
+cxx="x86_64-linux-android26-clang++"
+ar = "x86_64-linux-android26-clang"
+linker = "x86_64-linux-android26-clang"
+
+[target.aarch64-linux-android]
+cc="aarch64-linux-android26-clang"
+cxx="aarch64-linux-android26-clang++"
+ar = "aarch64-linux-android26-clang"
+linker = "aarch64-linux-android26-clang"
