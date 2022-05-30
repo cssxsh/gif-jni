@@ -21,7 +21,7 @@ jobs:
         run: |
           rustup target add x86_64-pc-windows-msvc
 
-      - name: Build
+      - name: Build Windows X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-pc-windows-msvc
@@ -62,11 +62,19 @@ jobs:
           rustup target add x86_64-linux-android
           rustup target add aarch64-linux-android
 
-      - name: Build
+      - name: Build Linux X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
+
+      - name: Build Android X64
+        shell: bash
+        run: |
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
+
+      - name: Build Android ARM64
+        shell: bash
+        run: |
           cargo build --package gif-jni --lib --release --target aarch64-linux-android
 
       - name: Rename Library File Name
@@ -106,10 +114,14 @@ jobs:
           rustup target add aarch64-apple-darwin
           rustup target add x86_64-apple-darwin
 
-      - name: Build
+      - name: Build MacOS ARM64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-apple-darwin
+
+      - name: Build MacOS X64
+        shell: bash
+        run: |
           cargo build --package gif-jni --lib --release --target x86_64-apple-darwin
 
       - name: Rename Library File Name
