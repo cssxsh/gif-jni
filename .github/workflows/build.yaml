@@ -69,9 +69,7 @@ jobs:
       - name: Build Linux ARM64
         shell: bash
         run: |
-          cross build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
-        env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
 
       - name: Rename Library File Name
         shell: bash
