@@ -41,6 +41,55 @@ jobs:
 
   linux-build:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@master
+        with:
+          rust-version: nightly
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "10.0"
+
+      - name: Install Rust Target
+        shell: bash
+        run: |
+          rustup target add x86_64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+
+      - name: Build Linux X64
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
+
+      - name: Build Linux ARM64
+        shell: bash
+        run: |
+          cross build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+
+      - name: Rename Library File Name
+        shell: bash
+        run: |
+          mkdir library
+          cp target/x86_64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-x64.so
+          sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-x64.so.sha256
+          cp target/aarch64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-arm64.so
+          sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-build
+          path: library/*
+
+  android-build:
+    runs-on: ubuntu-latest
     container: ghcr.io/pragmatrix/rust-skia-linux:latest
     steps:
       - name: Checkout
@@ -53,29 +102,13 @@ jobs:
         run: rustup update
 
       - name: Configure Rust Toolchain
-        run: |
-          rustup default nightly
-          rustup toolchain install nightly-aarch64-unknown-linux-gnu
+        run: rustup default nightly
 
       - name: Install Rust Target
         shell: bash
         run: |
-          rustup target add x86_64-unknown-linux-gnu
-          rustup target add aarch64-unknown-linux-gnu
           rustup target add x86_64-linux-android
           rustup target add aarch64-linux-android
-
-      - name: Build Linux X64
-        shell: bash
-        run: |
-          cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
-
-      - name: Build Linux ARM64
-        shell: bash
-        run: |
-          cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
-        env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
       - name: Build Android X64
         shell: bash
@@ -99,10 +132,6 @@ jobs:
         shell: bash
         run: |
           mkdir library
-          cp target/x86_64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-x64.so
-          sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-x64.so.sha256
-          cp target/aarch64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-arm64.so
-          sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
           cp target/x86_64-linux-android/release/libgif_jni.so library/libgif-android-x64.so
           sha256sum library/libgif-android-x64.so | awk '{ print $1 }' > library/libgif-android-x64.so.sha256
           cp target/aarch64-linux-android/release/libgif_jni.so library/libgif-android-arm64.so
