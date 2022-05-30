@@ -74,7 +74,7 @@ jobs:
         env:
           CC_x86_64_linux_android: x86_64-linux-android26-clang
           CXX_x86_64_linux_android: x86_64-linux-android26-clang++
-          CARGO_TARGET_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
+          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
 
       - name: Build Android ARM64
         shell: bash
@@ -83,7 +83,7 @@ jobs:
         env:
           CC_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
           CXX_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang++
-          CARGO_TARGET_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: aarch64-linux-android26-clang
 
       - name: Rename Library File Name
         shell: bash
