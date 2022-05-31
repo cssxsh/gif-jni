@@ -76,8 +76,9 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
         env:
+          LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu:"
+          DYLD_LIBRARY_PATH: "$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu:"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-          LD_LIBRARY_PATH: "/usr/lib:"
 
       - name: Rename Library File Name
         shell: bash
@@ -127,11 +128,11 @@ jobs:
         with:
           ndk-version: r21e
 
-      - name: Set Android NDK Path
+      - name: Set Android NDK ToolChains Path
         shell: bash
         run: |
           ls -l ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt
-          PATH=${PATH}:${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/x86_64/bin
+          PATH=${PATH}:${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin
 
       - name: Build Android X64
         shell: bash
