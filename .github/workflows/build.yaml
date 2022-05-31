@@ -132,16 +132,14 @@ jobs:
       - name: Set Android NDK ToolChains Path
         shell: bash
         run: |
-          echo PATH=${PATH}:${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin >> $GITHUB_ENV
-          which x86_64-linux-android26-clang
-          which aarch64-linux-android26-clang
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          echo ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin >> $GITHUB_PATH
 
       - name: Build Android X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
           CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
           CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
@@ -151,7 +149,6 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-linux-android
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
           CXX_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang++
           CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: aarch64-linux-android26-clang
