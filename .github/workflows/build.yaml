@@ -130,7 +130,7 @@ jobs:
       - name: Set Android NDK Path
         shell: bash
         run: |
-          ls -l ${{ steps.setup-ndk.outputs.ndk-path }}
+          ls -l ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt
           PATH=${PATH}:${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/x86_64/bin
 
       - name: Build Android X64
@@ -139,9 +139,9 @@ jobs:
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-          CC_X86_64_LINUX_ANDROID: $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android26-clang
-          CXX_X86_64_LINUX_ANDROID: $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android26-clang++
-          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android26-clang
+          CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
+          CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
+          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
 
       - name: Build Android ARM64
         shell: bash
