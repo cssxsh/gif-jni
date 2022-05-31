@@ -36,7 +36,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: windows-build
+          name: push-build
           path: library/*
 
       - name: Release
@@ -108,7 +108,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: linux-build
+          name: push-build
           path: library/*
 
       - name: Release
@@ -180,8 +180,12 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: linux-build
+          name: push-build
           path: library/*
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
 
   macos-build:
     runs-on: macos-latest
@@ -225,7 +229,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: macos-build
+          name: push-build
           path: library/*
 
       - name: Release
