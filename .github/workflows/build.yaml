@@ -115,9 +115,10 @@ jobs:
           version: "13.0.1"
 
       - name: Install Android NDK
-        uses: nttld/setup-ndk@v1
+        uses: ravinderjangra/android-ndk-toolchain-setup@0.2
         with:
-          ndk-version: r21e
+          api: '26'
+          arch: 'x64'
 
       - name: Install Rust Target
         shell: bash
