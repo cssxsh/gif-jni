@@ -122,11 +122,19 @@ jobs:
           rustup target add aarch64-linux-android
           mkdir ndk
 
-      - name: Install Android NDK
+      - name: Install Android NDK X86_64
         uses: ravinderjangra/android-ndk-toolchain-setup@0.2
         with:
           api: '26'
-          arch: 'x86_64 aarch64'
+          arch: 'x86_64'
+          install-location: 'ndk'
+          force: true
+
+      - name: Install Android NDK ARM64
+        uses: ravinderjangra/android-ndk-toolchain-setup@0.2
+        with:
+          api: '26'
+          arch: 'arm64'
           install-location: 'ndk'
           force: true
 
