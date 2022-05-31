@@ -66,7 +66,15 @@ jobs:
           rustup target add aarch64-unknown-linux-gnu
           sudo dpkg --add-architecture arm64
           sudo sed -i 's/deb http/deb [arch=amd64,i386] http/' /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic main' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic main restricted' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic universe' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic multiverse' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-updates main restricted' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-updates universe' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-updates multiverse' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-security main restricted' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-security universe' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-security multiverse' | sudo tee -a /etc/apt/sources.list 
           sudo apt-get update
           sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64
           sudo apt-get download libfontconfig-dev:arm64
