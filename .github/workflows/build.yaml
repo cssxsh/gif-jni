@@ -126,7 +126,7 @@ jobs:
         uses: ravinderjangra/android-ndk-toolchain-setup@0.2
         with:
           api: '26'
-          arch: 'x86_64,aarch64'
+          arch: 'x86_64 aarch64'
           install-location: 'ndk'
           force: true
 
