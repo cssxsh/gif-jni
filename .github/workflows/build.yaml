@@ -64,6 +64,7 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-gnu
           rustup target add aarch64-unknown-linux-gnu
+          cat /etc/apt/sources.list
           ls -l /etc/apt/sources.list.d
           sudo rm azure
           sudo dpkg --add-architecture arm64
