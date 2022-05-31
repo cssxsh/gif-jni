@@ -76,13 +76,13 @@ jobs:
           echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-security universe' | sudo tee -a /etc/apt/sources.list 
           echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ bionic-security multiverse' | sudo tee -a /etc/apt/sources.list 
           sudo apt-get update
-          sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64
-          sudo apt-get download libfontconfig-dev:arm64
-          dpkg -X libfontconfig-dev*.deb apt_temp
-          sudo apt-get download libfreetype-dev:arm64
-          dpkg -X libfreetype-dev*.deb apt_temp
-          sudo cp -r apt_temp/usr/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
-          ls -l /usr/lib/aarch64-linux-gnu
+          sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 librust-crossfont+force-system-fontconfig-dev
+#          sudo apt-get download libfontconfig-dev:arm64
+#          dpkg -X libfontconfig-dev*.deb apt_temp
+#          sudo apt-get download libfreetype-dev:arm64
+#          dpkg -X libfreetype-dev*.deb apt_temp
+#          sudo cp -r apt_temp/usr/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
+#          ls -l /usr/lib/aarch64-linux-gnu
 
       - name: Build Linux X64
         shell: bash
