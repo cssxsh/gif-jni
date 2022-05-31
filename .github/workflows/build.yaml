@@ -120,29 +120,18 @@ jobs:
         run: |
           rustup target add x86_64-linux-android
           rustup target add aarch64-linux-android
-          mkdir ndk
 
-      - name: Install Android NDK X86_64
-        uses: ravinderjangra/android-ndk-toolchain-setup@0.2
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
         with:
-          api: '26'
-          arch: 'x86_64'
-          install-location: 'ndk'
-          force: true
-
-      - name: Install Android NDK ARM64
-        uses: ravinderjangra/android-ndk-toolchain-setup@0.2
-        with:
-          api: '26'
-          arch: 'arm64'
-          install-location: 'ndk'
-          force: true
+          ndk-version: r21e
 
       - name: Build Android X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
           CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
           CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
@@ -152,6 +141,7 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-linux-android
         env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
           CXX_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang++
           CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: aarch64-linux-android26-clang
