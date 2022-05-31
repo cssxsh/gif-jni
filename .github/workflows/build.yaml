@@ -66,7 +66,7 @@ jobs:
           rustup target add aarch64-unknown-linux-gnu
           sudo dpkg --add-architecture arm64
           sudo apt-get update
-          sudo apt-get install -y -qq gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64
           sudo apt-get download libfontconfig-dev:arm64
           dpkg -X libfontconfig-dev*.deb apt_temp
           sudo apt-get download libfreetype-dev:arm64
