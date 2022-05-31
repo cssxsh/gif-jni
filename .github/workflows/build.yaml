@@ -132,7 +132,7 @@ jobs:
       - name: Set Android NDK ToolChains Path
         shell: bash
         run: |
-          export PATH=${PATH}:${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin
+          echo PATH=${PATH}:${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin >> $GITHUB_ENV
           which x86_64-linux-android26-clang
           which aarch64-linux-android26-clang
 
