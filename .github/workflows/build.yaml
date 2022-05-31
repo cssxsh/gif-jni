@@ -65,6 +65,12 @@ jobs:
           rustup target add x86_64-unknown-linux-gnu
           rustup target add aarch64-unknown-linux-gnu
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          cd ~
+          git git@gitlab.freedesktop.org:fontconfig/fontconfig.git
+          cd fontconfig
+          ./config --prefix=/usr/aarch64-linux-gnu/bin/lib --cross-compile-prefix=aarch64-linux-gnu- no-asm shared
+          git checkout 2.14.0
+          cd /home/runner/work/gif-jni/gif-jni
 
       - name: Build Linux X64
         shell: bash
@@ -133,9 +139,9 @@ jobs:
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-          CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
-          CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
-          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
+          CC_X86_64_LINUX_ANDROID: $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android26-clang
+          CXX_X86_64_LINUX_ANDROID: $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android26-clang++
+          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: $CC_X86_64_LINUX_ANDROID
 
       - name: Build Android ARM64
         shell: bash
