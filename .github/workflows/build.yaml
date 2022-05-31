@@ -118,7 +118,7 @@ jobs:
         uses: ravinderjangra/android-ndk-toolchain-setup@0.2
         with:
           api: '26'
-          arch: 'x64'
+          arch: 'x86_64'
 
       - name: Install Rust Target
         shell: bash
