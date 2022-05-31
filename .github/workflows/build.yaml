@@ -77,7 +77,7 @@ jobs:
           echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security multiverse' | sudo tee -a /etc/apt/sources.list 
           sudo apt-get update
           sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64 librust-crossfont-dev
-          sudo apt-get download libfontconfig-dev:arm64
+          sudo apt-get download libfontconfig-dev1:arm64
           dpkg -X libfontconfig-dev*.deb apt_temp
           sudo apt-get download libfreetype-dev:arm64
           dpkg -X libfreetype-dev*.deb apt_temp
