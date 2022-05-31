@@ -64,7 +64,7 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-gnu
           rustup target add aarch64-unknown-linux-gnu
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu 
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libfontconfig1-dev
 
       - name: Build Linux X64
         shell: bash
@@ -99,19 +99,25 @@ jobs:
 
   android-build:
     runs-on: ubuntu-latest
-    container: ghcr.io/pragmatrix/rust-skia-linux:latest
+    # container: ghcr.io/pragmatrix/rust-skia-linux:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Prepare Rustup
-        run: (cd /github/home && ln -s /root/.cargo)
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@master
+        with:
+          rust-version: nightly
 
-      - name: Update Rustup and Rust
-        run: rustup update
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "13.0.1"
 
-      - name: Configure Rust Toolchain
-        run: rustup default nightly
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
 
       - name: Install Rust Target
         shell: bash
@@ -124,6 +130,7 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
           CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
           CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
@@ -133,6 +140,7 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-linux-android
         env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
           CXX_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang++
           CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: aarch64-linux-android26-clang
