@@ -64,7 +64,8 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-gnu
           rustup target add aarch64-unknown-linux-gnu
-          sudo sed '/azure.archive.ubuntu.com/d' /etc/cloud/templates/sources.list.tmpl
+          ls -l /etc/apt/sources.list.d
+          sudo rm azure
           sudo dpkg --add-architecture arm64
           sudo apt-get update
           sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64
