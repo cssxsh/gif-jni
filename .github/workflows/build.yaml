@@ -77,7 +77,7 @@ jobs:
           cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-          LD_LIBRARY_PATH: "usr/lib/fontconfig1/:"
+          LD_LIBRARY_PATH: "/usr/lib/fontconfig:/usr/lib/freetype/"
 
       - name: Rename Library File Name
         shell: bash
@@ -133,7 +133,6 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-linux-android
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
           CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
           CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
@@ -143,7 +142,6 @@ jobs:
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-linux-android
         env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           CC_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
           CXX_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang++
           CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: aarch64-linux-android26-clang
