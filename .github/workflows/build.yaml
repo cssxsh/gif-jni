@@ -2,7 +2,7 @@ name: "build"
 on: [ push, pull_request ]
 
 jobs:
-  windows-x64-build:
+  windows-build:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -11,7 +11,7 @@ jobs:
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
-          rust-version: stable
+          rust-version: nightly
 
       - name: Install LLVM
         run: choco install llvm
@@ -21,20 +21,10 @@ jobs:
         run: |
           rustup target add x86_64-pc-windows-msvc
 
-      - name: Install Cargo Bloat
-        shell: bash
-        run: |
-          cargo install cargo-bloat
-
-      - name: Build
+      - name: Build Windows X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-pc-windows-msvc
-
-      - name: Bloat
-        shell: bash
-        run: |
-          cargo bloat --release --crates --target x86_64-pc-windows-msvc
 
       - name: Rename Library File Name
         shell: bash
@@ -46,93 +36,65 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: windows-x64-build
+          name: push-build
           path: library/*
 
-  linux-arm64-build:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+
+  linux-build:
     runs-on: ubuntu-latest
-    container: ghcr.io/pragmatrix/rust-skia-linux:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Prepare Rustup
-        run: (cd /github/home && ln -s /root/.cargo)
-
-      - name: Update Rustup and Rust
-        run: rustup update
-
-      - name: Configure Rust Toolchain
-        run: rustup default stable
-
-      - name: Install Rust Target
-        shell: bash
-        run: |
-          rustup target add aarch64-unknown-linux-gnu
-
-      - name: Install Cargo Bloat
-        shell: bash
-        run: |
-          cargo install cargo-bloat
-
-      - name: Build
-        shell: bash
-        run: |
-          cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
-
-      - name: Bloat
-        shell: bash
-        run: |
-          cargo bloat --release --crates --target aarch64-unknown-linux-gnu
-
-      - name: Rename Library File Name
-        shell: bash
-        run: |
-          mkdir library
-          cp target/aarch64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-arm64.so
-          sha256sum library/libgif-linux-arm64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
-
-      - name: Upload
-        uses: actions/upload-artifact@v3
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@master
         with:
-          name: linux-arm64-build
-          path: library/*
+          rust-version: nightly
 
-  linux-x64-build:
-    runs-on: ubuntu-latest
-    container: ghcr.io/pragmatrix/rust-skia-linux:latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Prepare Rustup
-        run: (cd /github/home && ln -s /root/.cargo)
-
-      - name: Update Rustup and Rust
-        run: rustup update
-
-      - name: Configure Rust Toolchain
-        run: rustup default stable
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "13.0.1"
 
       - name: Install Rust Target
         shell: bash
         run: |
           rustup target add x86_64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+          sudo dpkg --add-architecture arm64
+          sudo sed -i 's/deb http/deb [arch=amd64,i386] http/' /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main restricted' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal universe' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal multiverse' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main restricted' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates universe' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates multiverse' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main restricted' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security universe' | sudo tee -a /etc/apt/sources.list 
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security multiverse' | sudo tee -a /etc/apt/sources.list 
+          sudo apt-get update
+          sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64
+          apt-get download libfontconfig1-dev:arm64
+          dpkg -X libfontconfig1-dev*.deb apt_temp
+          apt-get download libfreetype-dev:arm64
+          dpkg -X libfreetype-dev*.deb apt_temp
+          sudo cp -r apt_temp/usr/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
+          ls -l /usr/lib/aarch64-linux-gnu
 
-      - name: Install Cargo Bloat
-        shell: bash
-        run: |
-          cargo install cargo-bloat
-
-      - name: Build
+      - name: Build Linux X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-unknown-linux-gnu
 
-      - name: Bloat
+      - name: Build Linux ARM64
         shell: bash
         run: |
-          cargo bloat --release --crates --target x86_64-unknown-linux-gnu
+          cargo build --package gif-jni --lib --release --target aarch64-unknown-linux-gnu
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
       - name: Rename Library File Name
         shell: bash
@@ -140,14 +102,92 @@ jobs:
           mkdir library
           cp target/x86_64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-x64.so
           sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-x64.so.sha256
+          cp target/aarch64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-arm64.so
+          sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: linux-x64-build
+          name: push-build
           path: library/*
 
-  macos-arm64-build:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+
+  android-build:
+    runs-on: ubuntu-latest
+    # container: ghcr.io/pragmatrix/rust-skia-linux:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@master
+        with:
+          rust-version: nightly
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "13.0.1"
+
+      - name: Install Rust Target
+        shell: bash
+        run: |
+          rustup target add x86_64-linux-android
+          rustup target add aarch64-linux-android
+
+      - name: Install Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
+
+      - name: Set Android NDK ToolChains Path
+        shell: bash
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          echo ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin >> $GITHUB_PATH
+
+      - name: Build Android X64
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target x86_64-linux-android
+        env:
+          CC_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang
+          CXX_X86_64_LINUX_ANDROID: x86_64-linux-android26-clang++
+          CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER: x86_64-linux-android26-clang
+
+      - name: Build Android ARM64
+        shell: bash
+        run: |
+          cargo build --package gif-jni --lib --release --target aarch64-linux-android
+        env:
+          CC_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang
+          CXX_AARCH64_LINUX_ANDROID: aarch64-linux-android26-clang++
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: aarch64-linux-android26-clang
+
+      - name: Rename Library File Name
+        shell: bash
+        run: |
+          mkdir library
+          cp target/x86_64-linux-android/release/libgif_jni.so library/libgif-android-x64.so
+          sha256sum library/libgif-android-x64.so | awk '{ print $1 }' > library/libgif-android-x64.so.sha256
+          cp target/aarch64-linux-android/release/libgif_jni.so library/libgif-android-arm64.so
+          sha256sum library/libgif-android-arm64.so | awk '{ print $1 }' > library/libgif-android-arm64.so.sha256
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: push-build
+          path: library/*
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+
+  macos-build:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -156,7 +196,7 @@ jobs:
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
-          rust-version: stable
+          rust-version: nightly
 
       - name: Remove LLVM (macOS)
         run: brew uninstall llvm
@@ -165,79 +205,34 @@ jobs:
         shell: bash
         run: |
           rustup target add aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
 
-      - name: Install Cargo Bloat
-        shell: bash
-        run: |
-          cargo install cargo-bloat
-
-      - name: Build
+      - name: Build MacOS ARM64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target aarch64-apple-darwin
 
-      - name: Bloat
-        shell: bash
-        run: |
-          cargo bloat --release --crates --target aarch64-apple-darwin
-
-      - name: Rename Library File Name
-        shell: bash
-        run: |
-          mkdir library
-          cp target/aarch64-apple-darwin/release/libgif_jni.dylib library/libgif-macos-arm64.dylib
-          sha256sum library/libgif-macos-arm64.dylib | awk '{ print $1 }' > library/libgif-macos-arm64.dylib.sha256
-
-      - name: Upload
-        uses: actions/upload-artifact@v3
-        with:
-          name: macos-arm64-build
-          path: library/*
-
-  macos-x64-build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install Rust
-        uses: hecrj/setup-rust-action@master
-        with:
-          rust-version: stable
-
-      - name: Remove LLVM (macOS)
-        run: brew uninstall llvm
-
-      - name: Install Rust Target
-        shell: bash
-        run: |
-          rustup target add x86_64-apple-darwin
-
-      - name: Install Cargo Bloat
-        shell: bash
-        run: |
-          cargo install cargo-bloat
-
-      - name: Build
+      - name: Build MacOS X64
         shell: bash
         run: |
           cargo build --package gif-jni --lib --release --target x86_64-apple-darwin
-
-      - name: Bloat
-        shell: bash
-        run: |
-          cargo bloat --release --crates --target x86_64-apple-darwin
 
       - name: Rename Library File Name
         shell: bash
         run: |
           mkdir library
           cp target/x86_64-apple-darwin/release/libgif_jni.dylib library/libgif-macos-x64.dylib
-          sha256sum library/libgif-macos-x64.dylib | awk '{ print $1 }' > library/libgif-macos-x64.dylib.sha256
+          shasum -a 256 library/libgif-macos-x64.dylib | awk '{ print $1 }' > library/libgif-macos-x64.dylib.sha256
+          cp target/aarch64-apple-darwin/release/libgif_jni.dylib library/libgif-macos-arm64.dylib
+          shasum -a 256 library/libgif-macos-arm64.dylib | awk '{ print $1 }' > library/libgif-macos-arm64.dylib.sha256
 
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: macos-x64-build
+          name: push-build
           path: library/*
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
 
