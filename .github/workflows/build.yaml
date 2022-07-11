@@ -46,7 +46,7 @@ jobs:
           files: library/*
 
   linux-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -66,20 +66,9 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-gnu
           rustup target add aarch64-unknown-linux-gnu
-          sudo dpkg --add-architecture arm64
-          sudo sed -i 's/deb http/deb [arch=amd64,i386] http/' /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main restricted' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal universe' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal multiverse' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main restricted' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates universe' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates multiverse' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main restricted' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security universe' | sudo tee -a /etc/apt/sources.list 
-          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security multiverse' | sudo tee -a /etc/apt/sources.list 
           sudo apt-get update
           sudo apt-get install -y -qq gcc-aarch64-linux-gnu:amd64 g++-aarch64-linux-gnu:amd64
-          apt-get download libfontconfig1-dev:arm64
+          wget http://ports.ubuntu.com/pool/main/f/fontconfig/libfontconfig1-dev_2.12.6-0ubuntu2_arm64.deb
           dpkg -X libfontconfig1-dev*.deb apt_temp
           apt-get download libfreetype-dev:arm64
           dpkg -X libfreetype-dev*.deb apt_temp
