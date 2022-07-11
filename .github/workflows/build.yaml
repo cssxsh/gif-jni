@@ -72,7 +72,7 @@ jobs:
           wget http://ports.ubuntu.com/pool/main/f/freetype/libfreetype-dev_2.10.1-2ubuntu0.1_arm64.deb
           dpkg -X libfontconfig1-dev*.deb apt_temp
           dpkg -X libfreetype-dev*.deb apt_temp
-          sudo cp -r apt_temp/usr/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
+          sudo cp -r apt_temp/usr/lib/aarch64-linux-gnu/*.a /usr/lib/aarch64-linux-gnu/
           ls -l /usr/lib/aarch64-linux-gnu
 
       - name: Build Linux X64
