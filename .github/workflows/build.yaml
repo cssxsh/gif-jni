@@ -193,9 +193,6 @@ jobs:
         with:
           rust-version: nightly
 
-      - name: Remove LLVM (macOS)
-        run: brew uninstall llvm
-
       - name: Install Rust Target
         shell: bash
         run: |
