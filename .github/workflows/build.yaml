@@ -91,18 +91,6 @@ jobs:
           sudo cp -r ppc64el/usr/lib/powerpc64le-linux-gnu/*.a /usr/lib/powerpc64le-linux-gnu/
           ls -l /usr/lib/powerpc64le-linux-gnu
 
-      - name: Install Rust RISCV64 Target
-        shell: bash
-        run: |
-          rustup target add riscv64gc-unknown-linux-gnu
-          sudo apt-get install -y -qq gcc-riscv64-linux-gnu:amd64 g++-riscv64-linux-gnu:amd64
-          wget http://ports.ubuntu.com/pool/main/f/fontconfig/libfontconfig1-dev_2.13.1-2ubuntu3_riscv64.deb
-          wget http://ports.ubuntu.com/pool/main/f/freetype/libfreetype-dev_2.10.1-2ubuntu0.2_riscv64.deb
-          dpkg -X libfontconfig1-dev*riscv64.deb riscv64
-          dpkg -X libfreetype-dev*riscv64.deb riscv64
-          sudo cp -r riscv64/usr/lib/riscv64-linux-gnu/*.a /usr/lib/riscv64-linux-gnu/
-          ls -l /usr/lib/riscv64-linux-gnu
-
       - name: Build Linux X64
         shell: bash
         run: |
@@ -122,13 +110,6 @@ jobs:
         env:
           CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER: powerpc64le-linux-gnu-gcc
 
-      - name: Build Linux RISCV64
-        shell: bash
-        run: |
-          cargo build --package gif-jni --lib --release --target riscv64-unknown-linux-gnu
-        env:
-          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_GNU_LINKER: riscv64-linux-gnu-gcc
-
       - name: Rename Library File Name
         shell: bash
         run: |
@@ -139,8 +120,6 @@ jobs:
           sha256sum library/libgif-linux-arm64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
           cp target/powerpc64le-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-ppc64el.so
           sha256sum library/libgif-linux-ppc64el.so | awk '{ print $1 }' > library/libgif-linux-ppc64el.so.sha256
-          cp target/riscv64gc-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-riscv64.so
-          sha256sum library/libgif-linux-riscv64.so | awk '{ print $1 }' > library/libgif-linux-riscv64.so.sha256
 
       - name: Upload
         uses: actions/upload-artifact@v3
