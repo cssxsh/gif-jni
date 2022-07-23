@@ -122,13 +122,6 @@ jobs:
         env:
           CARGO_TARGET_POWERPC64LE_UNKNOWN_LINUX_GNU_LINKER: powerpc64le-linux-gnu-gcc
 
-      - name: Build Linux S390X
-        shell: bash
-        run: |
-          cargo build --package gif-jni --lib --release --target s390x-unknown-linux-gnu
-        env:
-          CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER: s390x-linux-gnu-gcc
-
       - name: Build Linux RISCV64
         shell: bash
         run: |
