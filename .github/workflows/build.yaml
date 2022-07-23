@@ -128,6 +128,7 @@ jobs:
           cargo build --package gif-jni --lib --release --target riscv64gc-unknown-linux-gnu
         env:
           CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_GNU_LINKER: riscv64-linux-gnu-gcc
+          TARGET: riscv64-unknown-linux-gnu
 
       - name: Rename Library File Name
         shell: bash
