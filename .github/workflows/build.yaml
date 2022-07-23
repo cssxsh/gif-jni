@@ -91,18 +91,6 @@ jobs:
           sudo cp -r ppc64el/usr/lib/powerpc64le-linux-gnu/*.a /usr/lib/powerpc64le-linux-gnu/
           ls -l /usr/lib/powerpc64le-linux-gnu
 
-#      - name: Install Rust S390X Target
-#        shell: bash
-#        run: |
-#          rustup target add s390x-unknown-linux-gnu
-#          sudo apt-get install -y -qq gcc-s390x-linux-gnu:amd64 g++-s390x-linux-gnu:amd64
-#          wget http://ports.ubuntu.com/pool/main/f/fontconfig/libfontconfig1-dev_2.13.1-2ubuntu3_s390x.deb
-#          wget http://ports.ubuntu.com/pool/main/f/freetype/libfreetype-dev_2.10.1-2ubuntu0.2_s390x.deb
-#          dpkg -X libfontconfig1-dev*s390x.deb s390x
-#          dpkg -X libfreetype-dev*s390x.deb s390x
-#          sudo cp -r s390x/usr/lib/s390x-linux-gnu/*.a /usr/lib/s390x-linux-gnu/
-#          ls -l /usr/lib/s390x-linux-gnu
-
       - name: Install Rust RISCV64 Target
         shell: bash
         run: |
@@ -158,8 +146,6 @@ jobs:
           sha256sum library/libgif-linux-arm64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
           cp target/powerpc64le-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-ppc64el.so
           sha256sum library/libgif-linux-ppc64el.so | awk '{ print $1 }' > library/libgif-linux-ppc64el.so.sha256
-#          cp target/s390x-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-s390x.so
-#          sha256sum library/libgif-linux-s390x.so | awk '{ print $1 }' > library/libgif-linux-s390x.so.sha256
           cp target/riscv64gc-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-riscv64.so
           sha256sum library/libgif-linux-riscv64.so | awk '{ print $1 }' > library/libgif-linux-riscv64.so.sha256
 
