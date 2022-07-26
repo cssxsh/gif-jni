@@ -1,6 +1,7 @@
 extern crate core;
 
 mod encoder;
+mod style;
 
 use std::fs::File;
 use std::slice;
@@ -13,6 +14,7 @@ use skia_safe::image::*;
 use skia_safe::wrapper::*;
 use encoder::quantizer::*;
 use encoder::ditherer::*;
+use style::lowpoly::*;
 
 // region gif quantizer
 
@@ -805,6 +807,30 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024mirai_1skia_1pl
     Box::into_raw(frame);
 
     data.unwrap() as _
+}
+
+// endregion
+
+// region style lowpoly
+
+#[no_mangle]
+pub extern "system" fn Java_xyz_cssxsh_skia_StyleUtils_renderLowPoly_00024mirai_1skia_1plugin(
+    _env: JNIEnv, _this: jclass, variance: jdouble, cell_size: jint, depth: jint, dither: jint, seed: jlong, bitmap_ptr: jlong,
+) -> jlong {
+    let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
+        .unwrap_or_else(|| _env.fatal_error("wrap SkPixmap"));
+    let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
+    let mut style = LowPoly {
+        variance: variance as _,
+        cell_size: cell_size as _,
+        depth: depth as _,
+        dither: dither as _,
+        seed: seed as _,
+    };
+    let surface = style.render(bitmap);
+
+    sk_bitmap.unwrap();
+    surface.unwrap() as _
 }
 
 // endregion
