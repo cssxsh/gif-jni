@@ -40,7 +40,7 @@ pub fn ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB], distr
         for y in 0..height {
             let index = (y * width + x) as usize;
             let original = colors.get(index)
-                .expect("ditherer get original color");
+                .expect("encoder get original color");
             let replacement = palette.iter()
                 .min_by_key(|other| nearest(original, other))
                 .expect("atkinson_ditherer get min replacement");
@@ -51,7 +51,7 @@ pub fn ditherer(colors: &[RGBA], width: i32, height: i32, palette: &[RGB], distr
                 let sibling_y = y + component.delta_y;
                 if sibling_x >= 0 && sibling_x < width && sibling_y >= 0 && sibling_y < height {
                     let index = (sibling_y * width + sibling_x) as usize;
-                    let dest = colors.get(index).expect("ditherer get dest color");
+                    let dest = colors.get(index).expect("encoder get dest color");
                     let offset = &error.map(|i| (i as f64 * component.power) as u8);
 
                     raw[index] = add(dest, offset);

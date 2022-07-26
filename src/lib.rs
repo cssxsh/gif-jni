@@ -1,7 +1,6 @@
 extern crate core;
 
-mod quantizer;
-mod ditherer;
+mod encoder;
 
 use std::fs::File;
 use std::slice;
@@ -12,8 +11,10 @@ use jni::sys::*;
 use skia_safe::*;
 use skia_safe::image::*;
 use skia_safe::wrapper::*;
-use quantizer::quantizer::*;
-use ditherer::ditherer::*;
+use encoder::quantizer::*;
+use encoder::ditherer::*;
+
+// region gif quantizer
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024OctTree_native(
@@ -131,6 +132,10 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024KMeans_native(
     sk_bitmap.unwrap();
     data.unwrap() as _
 }
+
+// endregion
+
+// region gif encoder
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024Atkinson_native(
@@ -304,6 +309,10 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024Stucki_native(
     result.unwrap() as _
 }
 
+// endregion
+
+// region gif encoder
+
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_file(
     _env: JNIEnv, _this: jclass, path: JString, width: jint, height: jint, palette: jlong,
@@ -469,6 +478,9 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_close(
     let _: Box<Encoder<File>> = unsafe { Box::from_raw(encoder_ptr as _) };
 }
 
+// endregion
+
+// region gif frame
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_default_00024mirai_1skia_1plugin(
@@ -794,3 +806,5 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024mirai_1skia_1pl
 
     data.unwrap() as _
 }
+
+// endregion
