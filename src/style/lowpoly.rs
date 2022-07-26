@@ -218,7 +218,7 @@ impl LowPoly {
         canvas.draw_path(&path, paint);
     }
 
-    pub fn render(&mut self, bitmap: &Bitmap) -> Surface {
+    pub fn render(&mut self, bitmap: &Bitmap, canvas: &mut Canvas) {
         let cell_size = self.cell_size as f32;
 
         let grid_width = bitmap.width() as f32 + cell_size * 2f32;
@@ -230,14 +230,9 @@ impl LowPoly {
         let points = self.generate_points(columns, rows);
         let triangles = self.generate_triangles(columns, rows, &points);
 
-        let mut surface = Surface::new_raster_n32_premul(bitmap.dimensions())
-            .expect("create surface failure!");
-
         for triangle in &triangles {
-            self.draw_poly(&bitmap, surface.canvas(), triangle)
+            self.draw_poly(&bitmap, canvas, triangle)
         }
-
-        surface
     }
 }
 
@@ -247,9 +242,11 @@ fn render() {
     let data = Data::new_copy(bytes.as_slice());
     let image = Image::from_encoded(data).unwrap();
     let mut bitmap = Bitmap::new();
-    let mut temp = Surface::new_raster_n32_premul(image.dimensions()).unwrap();
-    temp.canvas().draw_image(image, (0, 0), None);
-    let _ = temp.canvas().read_pixels_to_bitmap(&mut bitmap, (0, 0));
+    bitmap.alloc_pixels_flags(image.image_info());
+    let mut surface = Surface::new_raster_n32_premul(image.dimensions()).unwrap();
+    surface.canvas().draw_image(image, (0, 0), None);
+    let result = surface.canvas().read_pixels_to_bitmap(&mut bitmap, (0, 0));
+    assert!(result, "read_pixels_to_bitmap failure");
 
     let mut lp = LowPoly {
         variance: 0.30,
@@ -259,8 +256,8 @@ fn render() {
         seed: 0,
     };
 
-    let mut result = lp.render(&bitmap);
-    let encoded = result.image_snapshot()
+    lp.render(&bitmap, surface.canvas());
+    let encoded = surface.image_snapshot()
         .encode_to_data(EncodedImageFormat::PNG)
         .unwrap();
 

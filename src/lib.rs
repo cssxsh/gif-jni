@@ -815,11 +815,15 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024mirai_1skia_1pl
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_skia_StyleUtils_renderLowPoly_00024mirai_1skia_1plugin(
-    _env: JNIEnv, _this: jclass, variance: jdouble, cell_size: jint, depth: jint, dither: jint, seed: jlong, bitmap_ptr: jlong,
+    _env: JNIEnv, _this: jclass, variance: jdouble, cell_size: jint, depth: jint, dither: jint, seed: jlong,
+    bitmap_ptr: jlong
 ) -> jlong {
     let sk_bitmap = RefHandle::wrap(bitmap_ptr as _)
         .unwrap_or_else(|| _env.fatal_error("wrap SkPixmap"));
     let bitmap = Bitmap::wrap_ref(sk_bitmap.inner());
+    let mut surface = Surface::new_raster_n32_premul(bitmap.dimensions())
+        .unwrap_or_else(|| _env.fatal_error("new_raster_n32_premul"));
+
     let mut style = LowPoly {
         variance: variance as _,
         cell_size: cell_size as _,
@@ -827,9 +831,9 @@ pub extern "system" fn Java_xyz_cssxsh_skia_StyleUtils_renderLowPoly_00024mirai_
         dither: dither as _,
         seed: seed as _,
     };
-    let surface = style.render(bitmap);
+    style.render(bitmap, surface.canvas());
 
-    sk_bitmap.unwrap();
+    assert_eq!(bitmap_ptr, sk_bitmap.unwrap() as _);
     surface.unwrap() as _
 }
 
