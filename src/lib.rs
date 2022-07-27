@@ -815,7 +815,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024mirai_1skia_1pl
 // region style lowpoly
 
 #[no_mangle]
-pub extern "system" fn Java_xyz_cssxsh_skia_StyleUtils_renderLowPoly_00024mirai_1skia_1plugin(
+pub extern "system" fn Java_xyz_cssxsh_skia_StyleUtils_renderLowPoly(
     _env: JNIEnv, _this: jclass, variance: jdouble, cell_size: jint, depth: jint, dither: jint, seed: jint,
     bitmap_ptr: jlong
 ) -> jlong {
