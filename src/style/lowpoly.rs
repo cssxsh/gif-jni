@@ -261,5 +261,12 @@ fn render() {
         .encode_to_data(EncodedImageFormat::PNG)
         .unwrap();
 
-    std::fs::write("./run/test.png", encoded.as_bytes()).unwrap();
+    std::fs::write("./run/test.1.png", encoded.as_bytes()).unwrap();
+
+    lp.render(&bitmap, surface.canvas());
+    let encoded = surface.image_snapshot()
+        .encode_to_data(EncodedImageFormat::PNG)
+        .unwrap();
+
+    std::fs::write("./run/test.2.png", encoded.as_bytes()).unwrap();
 }
