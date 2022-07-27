@@ -205,7 +205,8 @@ impl LowPoly {
         color4f.g = (1f32 - (1f32 - color4f.g) * (1f32 - specular)) * shadow;
         color4f.b = (1f32 - (1f32 - color4f.b) * (1f32 - specular)) * shadow;
 
-        let paint = Paint::new(&color4f, &bitmap.color_space());
+        let mut paint = Paint::new(&color4f, &bitmap.color_space());
+        paint.set_anti_alias(true);
 
         Self::draw_triangle(canvas, &triangle.vertices, &paint);
     }
