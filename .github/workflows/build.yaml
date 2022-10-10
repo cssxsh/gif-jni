@@ -161,7 +161,7 @@ jobs:
         id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r21e
+          ndk-version: r25b
 
       - name: Set Android NDK ToolChains Path
         shell: bash
