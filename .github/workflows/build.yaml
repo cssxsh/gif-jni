@@ -120,8 +120,8 @@ jobs:
           sha256sum library/libgif-linux-x64.so | awk '{ print $1 }' > library/libgif-linux-x64.so.sha256
           cp target/aarch64-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-arm64.so
           sha256sum library/libgif-linux-arm64.so | awk '{ print $1 }' > library/libgif-linux-arm64.so.sha256
-          cp target/powerpc64le-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-ppc64el.so
-          sha256sum library/libgif-linux-ppc64el.so | awk '{ print $1 }' > library/libgif-linux-ppc64el.so.sha256
+#          cp target/powerpc64le-unknown-linux-gnu/release/libgif_jni.so library/libgif-linux-ppc64el.so
+#          sha256sum library/libgif-linux-ppc64el.so | awk '{ print $1 }' > library/libgif-linux-ppc64el.so.sha256
 
       - name: Upload
         uses: actions/upload-artifact@v3
