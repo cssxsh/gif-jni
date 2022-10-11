@@ -75,11 +75,11 @@ jobs:
           wget http://ports.ubuntu.com/pool/main/f/fontconfig/libfontconfig1-dev_2.13.1-2ubuntu3_arm64.deb
           wget http://ports.ubuntu.com/pool/main/f/freetype/libfreetype-dev_2.10.1-2_arm64.deb
           wget http://ports.ubuntu.com/pool/main/e/expat/libexpat1-dev_2.2.9-1build1_arm64.deb
-          wget http://ports.ubuntu.com/pool/main/u/util-linux/libblkid-dev_2.34-0.1ubuntu9_arm64.deb
+          wget http://ports.ubuntu.com/pool/main/u/util-linux/uuid-dev_2.34-0.1ubuntu9_arm64.deb
           dpkg -X libfontconfig1-dev_*_arm64.deb aarch64
           dpkg -X libfreetype-dev_*_arm64.deb aarch64
           dpkg -X libexpat1-dev_*_arm64.deb aarch64
-          dpkg -X libblkid-dev_*_arm64.deb aarch64
+          dpkg -X uuid-dev_*_arm64.deb aarch64
           sudo cp -r aarch64/usr/lib/aarch64-linux-gnu/*.a /usr/lib/aarch64-linux-gnu/
           ls -l /usr/lib/aarch64-linux-gnu
 
