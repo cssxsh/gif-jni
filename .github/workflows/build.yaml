@@ -84,22 +84,22 @@ jobs:
           wget http://ports.ubuntu.com/pool/main/libp/libpng1.6/libpng-dev_1.6.37-2_arm64.deb
           wget http://ports.ubuntu.com/pool/main/z/zlib/zlib1g_1.2.11.dfsg-2ubuntu1_arm64.deb
           wget http://ports.ubuntu.com/pool/main/z/zlib/zlib1g-dev_1.2.11.dfsg-2ubuntu1_arm64.deb
-          dpkg -X libfontconfig1_*_arm64.deb aarch64
-          dpkg -X libfontconfig1-dev_*_arm64.deb aarch64
-          dpkg -X libfreetype6_*_arm64.deb aarch64
-          dpkg -X libfreetype-dev_*_arm64.deb aarch64
-          dpkg -X libexpat1_*_arm64.deb aarch64
-          dpkg -X libexpat1-dev_*_arm64.deb aarch64
-          dpkg -X libuuid1_*_arm64.deb aarch64
-          dpkg -X uuid-dev_*_arm64.deb aarch64
-          dpkg -X libpng16-16_*_arm64.deb aarch64
-          dpkg -X libpng-dev_*_arm64.deb aarch64
-          dpkg -X zlib1g_*_arm64.deb aarch64
-          dpkg -X zlib1g-dev_*_arm64.deb aarch64
+          dpkg -X libfontconfig1_*_arm64.deb temp
+          dpkg -X libfontconfig1-dev_*_arm64.deb temp
+          dpkg -X libfreetype6_*_arm64.deb temp
+          dpkg -X libfreetype-dev_*_arm64.deb temp
+          dpkg -X libexpat1_*_arm64.deb temp
+          dpkg -X libexpat1-dev_*_arm64.deb temp
+          dpkg -X libuuid1_*_arm64.deb temp
+          dpkg -X uuid-dev_*_arm64.deb temp
+          dpkg -X libpng16-16_*_arm64.deb temp
+          dpkg -X libpng-dev_*_arm64.deb temp
+          dpkg -X zlib1g_*_arm64.deb temp
+          dpkg -X zlib1g-dev_*_arm64.deb temp
           sudo mkdir /lib/aarch64-linux-gnu/
-          sudo cp -r aarch64/lib/aarch64-linux-gnu/* /lib/aarch64-linux-gnu/
+          sudo cp -r temp/lib/aarch64-linux-gnu/* /lib/aarch64-linux-gnu/
           ls -l /lib/aarch64-linux-gnu
-          sudo cp -r aarch64/usr/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
+          sudo cp -r temp/usr/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
           ls -l /usr/lib/aarch64-linux-gnu
 
 #      - name: Install Rust PPC64EL Target
