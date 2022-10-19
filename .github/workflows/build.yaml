@@ -61,6 +61,12 @@ jobs:
         with:
           version: "13.0.1"
 
+      - name: GLIBC List
+        shell: bash
+        run: |
+          ldd --version
+          strings /lib/x86_64-linux-gnu/libc.so.6 | grep GLIBC_
+
       - name: Install Rust X64 Target
         shell: bash
         run: |
