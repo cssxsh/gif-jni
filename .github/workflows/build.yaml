@@ -8,15 +8,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Fix git dubious ownership errors when synchronizing Skia dependencies
+        run: git config --global --add safe.directory '*'
+
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
           rust-version: nightly
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
 
       - name: Install LLVM
         run: choco install llvm
@@ -56,15 +54,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Fix git dubious ownership errors when synchronizing Skia dependencies
+        run: git config --global --add safe.directory '*'
+
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
           rust-version: nightly
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
@@ -178,15 +174,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Fix git dubious ownership errors when synchronizing Skia dependencies
+        run: git config --global --add safe.directory '*'
+
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
           rust-version: nightly
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
@@ -256,6 +250,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Fix git dubious ownership errors when synchronizing Skia dependencies
+        run: git config --global --add safe.directory '*'
+
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
@@ -266,11 +263,6 @@ jobs:
         run: |
           rustup target add aarch64-apple-darwin
           rustup target add x86_64-apple-darwin
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
 
       - name: Build MacOS ARM64
         shell: bash
