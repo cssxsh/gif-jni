@@ -7,6 +7,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Fix git dubious ownership errors when synchronizing Skia dependencies
         run: git config --global --add safe.directory '*'
@@ -53,6 +55,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Fix git dubious ownership errors when synchronizing Skia dependencies
         run: git config --global --add safe.directory '*'
@@ -173,6 +177,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Fix git dubious ownership errors when synchronizing Skia dependencies
         run: git config --global --add safe.directory '*'
@@ -249,6 +255,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Fix git dubious ownership errors when synchronizing Skia dependencies
         run: git config --global --add safe.directory '*'
