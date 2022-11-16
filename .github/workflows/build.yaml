@@ -7,8 +7,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          set-safe-directory: false
 
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
@@ -52,8 +50,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          set-safe-directory: false
 
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
@@ -171,8 +167,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          set-safe-directory: false
 
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
@@ -246,8 +240,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          set-safe-directory: false
 
       - name: Install Rust
         uses: hecrj/setup-rust-action@master

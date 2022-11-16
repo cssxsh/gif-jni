@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 gif = "0.11.4"
 jni = "0.20.0"
-skia-safe = { version = "0.56.0", features = ["binary-cache", "gl"] }
+skia-safe = { version = "0.56.1", features = ["binary-cache", "gl"] }
 
 [lib]
 crate-type = ["cdylib"]
