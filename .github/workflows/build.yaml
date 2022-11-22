@@ -11,7 +11,7 @@ jobs:
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
-          rust-version: 
+          rust-version: stable
 
       - name: Install LLVM
         run: choco install llvm
@@ -54,7 +54,7 @@ jobs:
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
-          rust-version: 
+          rust-version: stable
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
@@ -171,7 +171,7 @@ jobs:
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
-          rust-version: 
+          rust-version: stable
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
@@ -244,7 +244,7 @@ jobs:
       - name: Install Rust
         uses: hecrj/setup-rust-action@master
         with:
-          rust-version: 
+          rust-version: stable
 
       - name: Install Rust Target
         shell: bash
