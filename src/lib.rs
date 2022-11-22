@@ -1,4 +1,3 @@
-#![feature(strict_provenance)]
 extern crate core;
 
 mod encoder;
@@ -17,7 +16,7 @@ use encoder::quantizer::*;
 use encoder::ditherer::*;
 use style::lowpoly::*;
 
-// region gif quantizer
+// region GIF Quantizer
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024OctTree_native(
@@ -138,7 +137,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Quantizer_00024KMeans_native(
 
 // endregion
 
-// region gif encoder
+// region GIF Ditherer
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024Atkinson_native(
@@ -314,7 +313,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Ditherer_00024Stucki_native(
 
 // endregion
 
-// region gif encoder
+// region GIF Encoder
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_file(
@@ -483,7 +482,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Encoder_close(
 
 // endregion
 
-// region gif frame
+// region GIF Frame
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_gif_Frame_default_00024mirai_1skia_1plugin(
@@ -812,7 +811,7 @@ pub extern "system" fn Java_xyz_cssxsh_gif_Frame_getPalette_00024mirai_1skia_1pl
 
 // endregion
 
-// region style lowpoly
+// region Style LowPoly
 
 #[no_mangle]
 pub extern "system" fn Java_xyz_cssxsh_skia_StyleUtils_renderLowPoly(
